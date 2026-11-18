@@ -211,3 +211,4 @@ export function getFallbackAQI(coords: CityCoords): AQIData {
     safeVentilationHours: generateSafeVentilationHours(isInversion)
   };
 }
+

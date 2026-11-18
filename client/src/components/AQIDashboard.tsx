@@ -300,3 +300,4 @@ export const AQIDashboard: React.FC<AQIDashboardProps> = ({ data, isLoading }) =
     </div>
   );
 };
+

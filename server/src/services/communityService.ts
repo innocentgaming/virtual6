@@ -80,3 +80,4 @@ export function upvoteCommunityReport(id: string): CommunityReport | null {
   }
   return null;
 }
+

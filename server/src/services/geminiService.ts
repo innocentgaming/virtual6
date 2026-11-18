@@ -11,6 +11,8 @@ Your mission:
 4. Emphasize low-cost, accessible interventions (like DIY Corsi-Rosenthal boxes, damp mopping over dry sweeping, strategic micro-ventilation windows).
 Keep explanations clear, structured, and compassionate with bulleted action steps. Always cite reliable health principles (WHO Air Quality Guidelines, US EPA AQI benchmarks).`;
 
+const GEMINI_REST_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent';
+
 export async function generateAssistantResponse(
   messages: ChatMessage[],
   profile?: Partial<UserLifestyleProfile>,
@@ -29,35 +31,69 @@ export async function generateAssistantResponse(
     return securityCheck.safeResponse;
   }
 
-  // 2. If Gemini API Key is available, attempt real LLM call
+  // Determine active API Key (from request header or server .env)
   const apiKey = customApiKey || process.env.GEMINI_API_KEY;
-  if (apiKey) {
+
+  if (apiKey && apiKey.trim().length > 0) {
+    let contextString = '';
+    if (currentAQI) {
+      contextString += `\n[Current Environment: City: ${currentAQI.city || 'Unknown'}, AQI: ${currentAQI.aqi ?? 'N/A'} (${currentAQI.level || 'Unknown'}), PM2.5: ${currentAQI.pollutants?.pm25 ?? 'N/A'} ug/m3, Inversion Risk: ${currentAQI.isInversionLikely ? 'HIGH' : 'LOW'}]`;
+    }
+    if (profile) {
+      contextString += `\n[Household Context: Persona: ${profile.persona || 'Family'}, Budget: ${profile.budgetTier || 'Moderate'}, Vulnerabilities: ${(profile.vulnerabilities || []).join(', ') || 'None reported'}, Commute: ${profile.commuteMode || 'Standard'}, Heating: ${profile.heatingSource || 'Standard'}, Purifier: ${profile.hasAirPurifier ? 'Yes' : 'No'}]`;
+    }
+
+    const fullPrompt = `${SYSTEM_PROMPT}\n${contextString}\n\nUser Question: ${sanitizedPrompt}`;
+
+    // 2. Primary Method: Direct REST Call matching Google Gemini generateContent specification
     try {
-      const genAI = new GoogleGenerativeAI(apiKey);
+      const restResponse = await fetch(GEMINI_REST_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-goog-api-key': apiKey.trim()
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: fullPrompt
+                }
+              ]
+            }
+          ]
+        }),
+        signal: AbortSignal.timeout(6000)
+      });
+
+      if (restResponse.ok) {
+        const restJson: any = await restResponse.json();
+        const candidateText = restJson.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (candidateText && candidateText.trim().length > 0) {
+          return candidateText.trim();
+        }
+      }
+    } catch (restErr) {
+      // Fall through to SDK or fallback
+    }
+
+    // 3. Secondary Method: Google Generative AI SDK
+    try {
+      const genAI = new GoogleGenerativeAI(apiKey.trim());
       const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-
-      let contextString = '';
-      if (currentAQI) {
-        contextString += `\n[Current Environment: City: ${currentAQI.city || 'Unknown'}, AQI: ${currentAQI.aqi ?? 'N/A'} (${currentAQI.level || 'Unknown'}), PM2.5: ${currentAQI.pollutants?.pm25 ?? 'N/A'} ug/m3, Inversion Risk: ${currentAQI.isInversionLikely ? 'HIGH' : 'LOW'}]`;
-      }
-      if (profile) {
-        contextString += `\n[Household Context: Persona: ${profile.persona || 'Family'}, Budget: ${profile.budgetTier || 'Moderate'}, Vulnerabilities: ${(profile.vulnerabilities || []).join(', ') || 'None reported'}, Commute: ${profile.commuteMode || 'Standard'}, Heating: ${profile.heatingSource || 'Standard'}, Purifier: ${profile.hasAirPurifier ? 'Yes' : 'No'}]`;
-      }
-
-      const fullPrompt = `${SYSTEM_PROMPT}\n${contextString}\n\nUser Question: ${sanitizedPrompt}`;
-
       const result = await model.generateContent(fullPrompt);
       const response = await result.response;
       const text = response.text();
       if (text && text.trim().length > 0) {
-        return text;
+        return text.trim();
       }
-    } catch (err) {
-      console.warn('Gemini API call unsuccessful, falling back to built-in expert reasoning engine:', err);
+    } catch (sdkErr) {
+      // Fall through to deterministic expert engine
     }
   }
 
-  // 3. Built-in intelligent rule & knowledge engine for instant offline operation
+  // 4. Tertiary Resilient Fallback: Built-in Scientific Expert Reasoning Engine
   return getExpertRuleResponse(sanitizedPrompt, profile, currentAQI);
 }
 

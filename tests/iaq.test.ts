@@ -56,3 +56,4 @@ describe('Indoor Air Quality (IAQ) Simulation Model', () => {
     expect(hacks).toContain('Corsi-Rosenthal Box');
   });
 });
+

@@ -46,3 +46,4 @@ describe('AQI & Microclimate Services', () => {
     expect(fallback.safeVentilationHours.length).toBeGreaterThan(0);
   });
 });
+

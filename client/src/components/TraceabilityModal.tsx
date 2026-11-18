@@ -128,3 +128,4 @@ export const TraceabilityModal: React.FC<TraceabilityModalProps> = ({ isOpen, on
     </div>
   );
 };
+

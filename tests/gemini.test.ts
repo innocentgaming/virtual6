@@ -27,3 +27,4 @@ describe('GenAI Smog Assistant Fallback & Knowledge Engine', () => {
     expect(res).toContain('Golden Window');
   });
 });
+

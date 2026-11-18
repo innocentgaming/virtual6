@@ -117,3 +117,4 @@ export function simulateIndoorAirQuality(input: IAQSimulationInput): IAQSimulati
     actionableHacks: hacks
   };
 }
+

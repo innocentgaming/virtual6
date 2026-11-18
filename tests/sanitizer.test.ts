@@ -30,3 +30,4 @@ describe('Security Sanitizer Utilities', () => {
     expect(result).toEqual(['delhi', 'mumbai']);
   });
 });
+

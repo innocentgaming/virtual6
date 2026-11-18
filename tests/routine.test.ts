@@ -63,3 +63,4 @@ describe('Daily Routine Optimizer & Exposure Dose Calculations', () => {
     expect(result.impactSummary.totalCO2PreventedKg).toBeGreaterThan(0);
   });
 });
+

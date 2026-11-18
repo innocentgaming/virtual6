@@ -199,3 +199,4 @@ export const ChatAssistant: React.FC<ChatAssistantProps> = ({ aqiData, selectedC
     </div>
   );
 };
+

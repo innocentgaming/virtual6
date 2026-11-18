@@ -42,3 +42,4 @@ export function optionalAuth(req: AuthenticatedRequest, _res: Response, next: Ne
   }
   next();
 }
+

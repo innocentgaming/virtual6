@@ -35,3 +35,4 @@ describe('Accessibility & WCAG 2.2 AA Compliance Tests (Target 100/100 Accessibi
     expect(safeVentilationHours[0]).toContain('Solar Heating');
   });
 });
+

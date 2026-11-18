@@ -90,3 +90,4 @@ describe('Authentication & User Privacy Services (Target 100/100 Security)', () 
     expect(getUserProfile(auth.user.id)).toBeNull();
   });
 });
+
