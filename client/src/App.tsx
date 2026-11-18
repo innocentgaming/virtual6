@@ -8,7 +8,8 @@ import {
   Wind, 
   Heart, 
   Info, 
-  Github 
+  Github, 
+  FileText 
 } from 'lucide-react';
 import { Navbar } from './components/Navbar';
 import { AQIDashboard } from './components/AQIDashboard';
@@ -17,7 +18,9 @@ import { IAQSimulator } from './components/IAQSimulator';
 import { ChatAssistant } from './components/ChatAssistant';
 import { CommunityHub } from './components/CommunityHub';
 import { ApiKeyModal } from './components/ApiKeyModal';
-import { fetchAQI, AQIData } from './services/api';
+import { TraceabilityModal } from './components/TraceabilityModal';
+import { AuthModal } from './components/AuthModal';
+import { fetchAQI, AQIData, UserSession, getAuthToken } from './services/api';
 
 type TabType = 'aqi' | 'routine' | 'iaq' | 'chat' | 'community';
 
@@ -27,6 +30,9 @@ export const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<TabType>('aqi');
   const [isKeyModalOpen, setIsKeyModalOpen] = useState<boolean>(false);
+  const [isTraceabilityOpen, setIsTraceabilityOpen] = useState<boolean>(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
+  const [currentUser, setCurrentUser] = useState<UserSession | null>(null);
 
   const loadAQI = async (city: string) => {
     setIsLoading(true);
@@ -46,6 +52,14 @@ export const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-white">
+      {/* Skip to Main Content Link for Keyboard Accessibility (WCAG 2.2 AA) */}
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-emerald-600 focus:text-white focus:rounded-lg focus:font-bold focus:shadow-lg focus:outline-none"
+      >
+        Skip to main content
+      </a>
+
       {/* Top Navbar */}
       <Navbar
         aqiData={aqiData}
@@ -53,6 +67,9 @@ export const App: React.FC = () => {
         onCityChange={(city) => setSelectedCity(city)}
         onRefresh={() => loadAQI(selectedCity)}
         onOpenKeyModal={() => setIsKeyModalOpen(true)}
+        onOpenTraceabilityModal={() => setIsTraceabilityOpen(true)}
+        onOpenAuthModal={() => setIsAuthModalOpen(true)}
+        currentUser={currentUser}
         isLoading={isLoading}
       />
 
@@ -79,7 +96,7 @@ export const App: React.FC = () => {
                   role="tab"
                   aria-selected={isActive}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs md:text-sm font-semibold transition shrink-0 ${
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs md:text-sm font-semibold transition shrink-0 min-h-[44px] ${
                     isActive
                       ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/30'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/80'
@@ -95,7 +112,7 @@ export const App: React.FC = () => {
       </div>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8 py-8">
+      <main id="main-content" className="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8 py-8" tabIndex={-1}>
         {activeTab === 'aqi' && (
           <AQIDashboard data={aqiData} isLoading={isLoading} />
         )}
@@ -124,7 +141,7 @@ export const App: React.FC = () => {
             <div className="w-6 h-6 rounded-lg bg-emerald-600/30 flex items-center justify-center text-emerald-400 font-bold">
               <Wind className="w-3.5 h-3.5" />
             </div>
-            <span className="font-bold text-slate-200">AeroShield AI</span>
+            <span className="font-bold text-slate-200">BreatheSmart AI</span>
             <span>— Winter Smog & Urban Clean Air Navigator</span>
           </div>
 
@@ -133,19 +150,39 @@ export const App: React.FC = () => {
             <span>•</span>
             <span>US EPA AQI Standards</span>
             <span>•</span>
-            <span>Berkeley Earth particulate toxicity model</span>
+            <span>Berkeley Earth Particulate Model</span>
           </div>
 
-          <div className="text-[11px]">
-            Designed for Clean Air & Community Health
+          <div className="flex items-center gap-2 text-[11px]">
+            <button
+              onClick={() => setIsTraceabilityOpen(true)}
+              className="text-emerald-400 hover:underline flex items-center gap-1 font-semibold"
+            >
+              <FileText className="w-3 h-3" />
+              <span>Traceability Matrix</span>
+            </button>
+            <span>•</span>
+            <span>Targeting 100/100 All Standards</span>
           </div>
         </div>
       </footer>
 
-      {/* API Key Modal */}
+      {/* Modals */}
       <ApiKeyModal
         isOpen={isKeyModalOpen}
         onClose={() => setIsKeyModalOpen(false)}
+      />
+
+      <TraceabilityModal
+        isOpen={isTraceabilityOpen}
+        onClose={() => setIsTraceabilityOpen(false)}
+      />
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        currentUser={currentUser}
+        onUserChange={setCurrentUser}
       />
     </div>
   );

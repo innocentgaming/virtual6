@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
@@ -54,6 +54,15 @@ app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 // Mount API routes
 app.use('/api', apiRoutes);
 
+// Safe global error handler middleware (never leak stack traces or server paths)
+app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+  console.error('[BreatheSmart Error Logger]:', err.message);
+  res.status(500).json({
+    success: false,
+    error: 'An unexpected internal error occurred. Please try again later.'
+  });
+});
+
 // Serve static frontend files if built
 const publicDir = path.resolve(__dirname, '../public');
 app.use(express.static(publicDir));
@@ -70,7 +79,7 @@ app.get('*', (req, res, next) => {
         <html lang="en">
           <head>
             <meta charset="UTF-8" />
-            <title>AeroShield AI Server</title>
+            <title>BreatheSmart AI Server</title>
             <style>
               body { font-family: system-ui, sans-serif; background: #0f172a; color: #f8fafc; padding: 2rem; text-align: center; }
               .card { max-width: 600px; margin: 40px auto; background: #1e293b; padding: 2rem; border-radius: 12px; border: 1px solid #334155; }
@@ -80,7 +89,7 @@ app.get('*', (req, res, next) => {
           </head>
           <body>
             <div class="card">
-              <h1>🛡️ AeroShield AI Server Active</h1>
+              <h1>🛡️ BreatheSmart AI Server Active</h1>
               <p>Backend API is running on port ${PORT}.</p>
               <p><a href="/api/health">Check Health Status</a> | <a href="/api/aqi?city=Delhi">View Live AQI API</a></p>
               <p>To view the full UI, run <code>npm run dev</code> or <code>npm run build</code>.</p>
@@ -94,7 +103,7 @@ app.get('*', (req, res, next) => {
 
 if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {
-    console.log(`[AeroShield AI] Server operational at http://localhost:${PORT}`);
+    console.log(`[BreatheSmart AI] Server operational at http://localhost:${PORT}`);
   });
 }
 

@@ -1,8 +1,9 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { ChatMessage, UserLifestyleProfile, AQIData } from '../types';
 import { sanitizeString } from '../utils/sanitizer';
+import { inspectPromptSecurity } from '../security/promptGuard';
 
-const SYSTEM_PROMPT = `You are AeroShield AI, an empathetic, scientifically grounded GenAI assistant specializing in severe winter smog and urban air pollution navigation for families and communities.
+const SYSTEM_PROMPT = `You are BreatheSmart AI, an empathetic, scientifically grounded GenAI assistant specializing in severe winter smog and urban air pollution navigation for families, students, professionals, and communities.
 Your mission:
 1. Provide actionable, low-emission daily routines and practical indoor air quality (IAQ) hacks.
 2. Clearly explain the direct health and ecological impact of choices (e.g. avoided PM2.5 lung deposition, CO2 emissions prevented).
@@ -16,26 +17,34 @@ export async function generateAssistantResponse(
   currentAQI?: Partial<AQIData>,
   customApiKey?: string
 ): Promise<string> {
-  const apiKey = customApiKey || process.env.GEMINI_API_KEY;
-
   const latestUserMessage = messages[messages.length - 1]?.content || '';
   const sanitizedPrompt = sanitizeString(latestUserMessage, 2000);
 
-  // If Gemini API Key is available, attempt real LLM call
+  // 1. Run security & boundary inspection first
+  const securityCheck = inspectPromptSecurity(sanitizedPrompt);
+  if (!securityCheck.isSafe && securityCheck.safeResponse) {
+    return securityCheck.safeResponse;
+  }
+  if (securityCheck.category === 'unrelated' && securityCheck.safeResponse) {
+    return securityCheck.safeResponse;
+  }
+
+  // 2. If Gemini API Key is available, attempt real LLM call
+  const apiKey = customApiKey || process.env.GEMINI_API_KEY;
   if (apiKey) {
     try {
       const genAI = new GoogleGenerativeAI(apiKey);
       const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-      let contextContextString = '';
+      let contextString = '';
       if (currentAQI) {
-        contextContextString += `\n[Current Environment: City: ${currentAQI.city || 'Unknown'}, AQI: ${currentAQI.aqi || 'N/A'} (${currentAQI.level || 'Unknown'}), PM2.5: ${currentAQI.pollutants?.pm25 || 'N/A'} ug/m3, Inversion Risk: ${currentAQI.isInversionLikely ? 'HIGH' : 'LOW'}]`;
+        contextString += `\n[Current Environment: City: ${currentAQI.city || 'Unknown'}, AQI: ${currentAQI.aqi ?? 'N/A'} (${currentAQI.level || 'Unknown'}), PM2.5: ${currentAQI.pollutants?.pm25 ?? 'N/A'} ug/m3, Inversion Risk: ${currentAQI.isInversionLikely ? 'HIGH' : 'LOW'}]`;
       }
       if (profile) {
-        contextContextString += `\n[Household Context: Vulnerabilities: ${(profile.vulnerabilities || []).join(', ') || 'None reported'}, Commute: ${profile.commuteMode || 'Standard'}, Heating: ${profile.heatingSource || 'Standard'}, Purifier: ${profile.hasAirPurifier ? 'Yes' : 'No'}]`;
+        contextString += `\n[Household Context: Persona: ${profile.persona || 'Family'}, Budget: ${profile.budgetTier || 'Moderate'}, Vulnerabilities: ${(profile.vulnerabilities || []).join(', ') || 'None reported'}, Commute: ${profile.commuteMode || 'Standard'}, Heating: ${profile.heatingSource || 'Standard'}, Purifier: ${profile.hasAirPurifier ? 'Yes' : 'No'}]`;
       }
 
-      const fullPrompt = `${SYSTEM_PROMPT}\n${contextContextString}\n\nUser Question: ${sanitizedPrompt}`;
+      const fullPrompt = `${SYSTEM_PROMPT}\n${contextString}\n\nUser Question: ${sanitizedPrompt}`;
 
       const result = await model.generateContent(fullPrompt);
       const response = await result.response;
@@ -45,11 +54,10 @@ export async function generateAssistantResponse(
       }
     } catch (err) {
       console.warn('Gemini API call unsuccessful, falling back to built-in expert reasoning engine:', err);
-      // Fall through to deterministic expert engine
     }
   }
 
-  // Built-in intelligent rule & knowledge engine for instant offline operation
+  // 3. Built-in intelligent rule & knowledge engine for instant offline operation
   return getExpertRuleResponse(sanitizedPrompt, profile, currentAQI);
 }
 
@@ -60,10 +68,53 @@ export function getExpertRuleResponse(
 ): string {
   const query = prompt.toLowerCase();
   const city = currentAQI?.city || 'your area';
-  const aqiVal = currentAQI?.aqi || 285;
-  const pm25Val = currentAQI?.pollutants?.pm25 || 175;
+  const aqiVal = currentAQI?.aqi ?? 285;
+  const pm25Val = currentAQI?.pollutants?.pm25 ?? 175;
+  const isGoodAQI = aqiVal <= 50;
+  const isModerateAQI = aqiVal > 50 && aqiVal <= 100;
+  const isSevereAQI = aqiVal > 200;
 
-  if (query.includes('diy') || query.includes('filter') || query.includes('corsi') || query.includes('purifier')) {
+  // Good AQI scenario handling
+  if (isGoodAQI) {
+    return `### ☀️ Clean Air Advisory for ${city} (AQI: ${aqiVal} - Good)
+
+Air quality is currently in the **Good** tier (PM2.5: ${pm25Val} µg/m³), well within the WHO guideline target!
+
+#### Recommended Daily Plan:
+1. **Full Natural Ventilation**: Open windows for whole-home airing to displace accumulated indoor CO2, radon, and moisture.
+2. **Outdoor Activities**: Ideal conditions for outdoor cardio, running, cycling, and children's school play.
+3. **Filter Maintenance**: Check pre-filters on your ventilation or purifiers so they are clean and primed before the next winter inversion event.`;
+  }
+
+  // Moderate AQI scenario handling
+  if (isModerateAQI && !query.includes('diy') && !query.includes('purifier')) {
+    return `### 🌤️ Moderate Air Quality Advisory for ${city} (AQI: ${aqiVal} - Moderate)
+
+Air quality is acceptable (PM2.5: ${pm25Val} µg/m³), but sensitive individuals (asthmatics, infants) may experience mild respiratory irritation over prolonged exposure.
+
+#### Recommended Precautions:
+1. **Micro-Ventilation**: Vent rooms between **11:00 AM and 2:00 PM** when winds are active.
+2. **Sensitive Groups**: Asthmatics should carry their rescue inhaler during outdoor runs.
+3. **Clean Commuting**: Consider public transit or carpooling to prevent localized street-canyon NO2 spikes.`;
+  }
+
+  // Conflicting preference handling (e.g. user insists on running outside during severe smog)
+  if ((query.includes('run outside') || query.includes('outdoor workout') || query.includes('jogging')) && isSevereAQI) {
+    return `### ⚠️ Conflicting Activity Advisory: Running in Severe Smog
+
+You asked about running outdoors while ambient AQI in **${city}** is **${aqiVal} (Severe)** with PM2.5 at **${pm25Val} µg/m³**.
+
+#### Scientific Risk:
+- When running, minute ventilation jumps from $0.75\\text{ m}^3/\\text{h}$ to **$2.9\\text{ m}^3/\\text{h}$** (a nearly 4x increase in inhaled air volume).
+- Heavy mouth-breathing bypasses your nasal filtration hairs, depositing ultra-fine particles deep into pulmonary alveoli and the bloodstream.
+
+#### Healthy Compromise:
+1. **Move Indoors**: Complete your aerobic session indoors in a sealed room with an air purifier or Corsi-Rosenthal box on medium/high speed.
+2. **Afternoon Shift**: If you must exercise outdoors, wait until **1:00 PM – 2:30 PM** when solar heating temporarily lifts the inversion lid, and wear a well-fitted N95 respirator.`;
+  }
+
+  // DIY Purifier / Corsi-Rosenthal Box (Prioritized over generic budget)
+  if (query.includes('diy') || query.includes('corsi') || query.includes('build')) {
     return `### 🛠️ DIY High-Efficiency Air Purifier: The Corsi-Rosenthal Box
 
 When commercial HEPA purifiers are expensive or sold out during winter smog spikes, a **Corsi-Rosenthal Box** delivers superior filtration (CADR ~350–500 CFM) for under $40-$50.
@@ -86,6 +137,26 @@ When commercial HEPA purifiers are expensive or sold out during winter smog spik
 - **Particle Removal**: Traps >85% of fine PM2.5 and viral aerosol particles per single pass.`;
   }
 
+  // Limited budget user handling
+  if (query.includes('cheap') || query.includes('budget') || query.includes('low cost') || query.includes('free') || profile?.budgetTier === 'low') {
+    return `### 💡 Zero-Cost & Low-Budget Smog Hacks ($0 – $40)
+
+You don't need a $400 designer purifier to protect your household from winter smog.
+
+#### 1. Zero-Cost Behavioral Tweaks ($0)
+- **Damp-Wiping over Sweeping**: Dry broom sweeping re-suspends settled PM2.5 into your breathing zone for over 3 hours. Use a damp cloth ($0).
+- **Pot Lids & Exhaust Timing**: Keep lids tightly on pots when cooking, and turn range hoods on 1 minute before burner ignition.
+- **Door Draft Stopper**: Roll up a damp bath towel and place it firmly under exterior door gaps to block drafting smog.
+
+#### 2. DIY Corsi-Rosenthal Box (~$35–$45)
+- Standard 20" box fan ($20) + 4x MERV-13 pleated filters ($6 each) + duct tape.
+- Delivers Clean Air Delivery Rate (CADR) of **400+ CFM**, matching commercial $350 HEPA units.
+
+#### 3. Low-Cost Personal Respirators
+- Fitted **KF94 or N95 masks** can be safely rotated across 5 days if stored dry in paper bags between uses.`;
+  }
+
+  // Asthmatic / Child / Elderly protection
   if (query.includes('asthma') || query.includes('child') || query.includes('baby') || query.includes('elderly') || query.includes('vulnerab')) {
     return `### 🩺 High-Risk Action Plan: Protecting Asthmatics, Children & Seniors in Winter Smog
 
@@ -105,6 +176,7 @@ Current conditions in **${city}** (AQI ${aqiVal}, PM2.5: ${pm25Val} µg/m³) rep
    - Use saline nasal rinses post-commute to clear coarse inhaled particles from nasal passages.`;
   }
 
+  // Inversion explanation
   if (query.includes('inversion') || query.includes('why') || query.includes('smog') || query.includes('winter')) {
     return `### 🌫️ Why Winter Smog is So Toxic: The Atmospheric Inversion Phenomenon
 
@@ -120,6 +192,7 @@ During summer, the ground is heated by strong sunlight, so warm air near the gro
 - **Golden Window**: **12:00 PM – 2:30 PM**. Direct solar heating breaks the inversion lid, allowing surface air to disperse vertically.`;
   }
 
+  // Daily routine recommendations
   if (query.includes('routine') || query.includes('daily') || query.includes('commute') || query.includes('schedule')) {
     return `### 📅 Smart Smog-Resilient Daily Routine for ${city}
 
@@ -140,7 +213,7 @@ Adapting the timing of your daily activities reduces inhaled particulate dose by
   }
 
   // General comprehensive response
-  return `### 🛡️ AeroShield Smog Advisory for ${city} (AQI: ${aqiVal})
+  return `### 🛡️ BreatheSmart Smog Advisory for ${city} (AQI: ${aqiVal})
 
 Navigating severe winter pollution requires a dual approach: **Personal Health Defense** and **Low-Emission Community Choices**.
 

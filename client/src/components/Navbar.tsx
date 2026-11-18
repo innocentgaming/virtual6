@@ -5,9 +5,11 @@ import {
   ShieldCheck, 
   Key, 
   MapPin, 
-  RefreshCw 
+  RefreshCw, 
+  FileText, 
+  User 
 } from 'lucide-react';
-import { AQIData } from '../services/api';
+import { AQIData, UserSession } from '../services/api';
 
 interface NavbarProps {
   aqiData: AQIData | null;
@@ -15,6 +17,9 @@ interface NavbarProps {
   onCityChange: (city: string) => void;
   onRefresh: () => void;
   onOpenKeyModal: () => void;
+  onOpenTraceabilityModal: () => void;
+  onOpenAuthModal: () => void;
+  currentUser: UserSession | null;
   isLoading: boolean;
 }
 
@@ -36,6 +41,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   onCityChange,
   onRefresh,
   onOpenKeyModal,
+  onOpenTraceabilityModal,
+  onOpenAuthModal,
+  currentUser,
   isLoading
 }) => {
   const getBadgeColor = (level: string = '') => {
@@ -67,10 +75,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className="font-extrabold text-xl tracking-tight text-white">
-                AeroShield<span className="text-emerald-400">AI</span>
+                BreatheSmart<span className="text-emerald-400">AI</span>
               </span>
               <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                Smog Navigator
+                Winter Smog Copilot
               </span>
             </div>
             <p className="text-xs text-slate-400">Family & Community Clean Air Companion</p>
@@ -78,16 +86,16 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Location & AQI Status Bar */}
-        <div className="flex flex-wrap items-center justify-center gap-3">
+        <div className="flex flex-wrap items-center justify-center gap-2.5">
           {/* City selector */}
-          <div className="flex items-center bg-slate-800/90 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm focus-within:ring-2 focus-within:ring-emerald-500">
+          <div className="flex items-center bg-slate-800/90 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs md:text-sm focus-within:ring-2 focus-within:ring-emerald-500">
             <MapPin className="w-4 h-4 text-emerald-400 mr-1.5" aria-hidden="true" />
             <select
               id="city-select"
               aria-label="Select City for Air Quality Data"
               value={selectedCity}
               onChange={(e) => onCityChange(e.target.value)}
-              className="bg-transparent text-slate-200 outline-none font-medium cursor-pointer"
+              className="bg-transparent text-slate-200 outline-none font-medium cursor-pointer text-xs md:text-sm"
             >
               {CITIES.map((c) => (
                 <option key={c} value={c} className="bg-slate-800 text-white">
@@ -102,7 +110,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={onRefresh}
             disabled={isLoading}
             aria-label="Refresh Air Quality Data"
-            className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition active:scale-95 disabled:opacity-50"
+            className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition active:scale-95 disabled:opacity-50 min-h-[38px] min-w-[38px] flex items-center justify-center"
             title="Refresh AQI data"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-emerald-400' : ''}`} />
@@ -113,11 +121,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div 
               role="status" 
               aria-live="polite"
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-semibold shadow-sm ${getBadgeColor(aqiData.level)}`}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs md:text-sm font-semibold shadow-sm ${getBadgeColor(aqiData.level)}`}
             >
               <span>AQI {aqiData.aqi}</span>
               <span className="w-1.5 h-1.5 rounded-full bg-current opacity-70" />
-              <span className="text-xs font-medium">{aqiData.level}</span>
+              <span className="text-xs font-medium hidden sm:inline">{aqiData.level}</span>
             </div>
           )}
 
@@ -129,18 +137,38 @@ export const Navbar: React.FC<NavbarProps> = ({
               title="Ground-level winter smog inversion trapped by warm air layer aloft"
             >
               <AlertTriangle className="w-4 h-4 text-amber-400 animate-pulse" aria-hidden="true" />
-              <span>Thermal Inversion Active</span>
+              <span className="hidden sm:inline">Inversion Active</span>
             </div>
           )}
+
+          {/* Traceability Matrix Button */}
+          <button
+            onClick={onOpenTraceabilityModal}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 border border-slate-700 transition min-h-[38px]"
+            title="View Problem-to-Feature Traceability Matrix"
+          >
+            <FileText className="w-3.5 h-3.5 text-blue-400" aria-hidden="true" />
+            <span className="hidden md:inline">Traceability</span>
+          </button>
 
           {/* Custom API Key Button */}
           <button
             onClick={onOpenKeyModal}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 border border-slate-700 transition"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 border border-slate-700 transition min-h-[38px]"
             title="Configure Gemini API Key (Optional)"
           >
             <Key className="w-3.5 h-3.5 text-emerald-400" aria-hidden="true" />
-            <span>AI Settings</span>
+            <span className="hidden md:inline">AI Key</span>
+          </button>
+
+          {/* Auth / Account Button */}
+          <button
+            onClick={onOpenAuthModal}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-xs font-semibold text-emerald-300 border border-emerald-500/40 transition min-h-[38px]"
+            title="User Account & Privacy"
+          >
+            <User className="w-3.5 h-3.5 text-emerald-400" aria-hidden="true" />
+            <span>{currentUser ? currentUser.name.split(' ')[0] : 'Sign In'}</span>
           </button>
         </div>
       </div>

@@ -1,7 +1,7 @@
 {
-  "name": "aeroshield-ai",
+  "name": "breathesmart-ai",
   "version": "1.0.0",
-  "description": "GenAI-Powered Winter Smog & Urban Air Pollution Companion for Families and Communities",
+  "description": "BreatheSmart AI - GenAI-Powered Winter Smog & Urban Air Pollution Companion for Families, Students, Professionals, and Communities",
   "main": "server/dist/index.js",
   "scripts": {
     "dev:server": "tsx watch server/src/index.ts",

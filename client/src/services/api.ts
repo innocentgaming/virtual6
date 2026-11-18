@@ -71,17 +71,36 @@ export interface CommunityReport {
   status: 'verified' | 'reported' | 'mitigated';
 }
 
+export interface UserSession {
+  id: string;
+  email: string;
+  name: string;
+  token: string;
+}
+
 const API_BASE = '/api';
 
 export function getCustomApiKey(): string {
-  return localStorage.getItem('AEROSHIELD_GEMINI_KEY') || '';
+  return localStorage.getItem('BREATHESMART_GEMINI_KEY') || '';
 }
 
 export function setCustomApiKey(key: string): void {
   if (key) {
-    localStorage.setItem('AEROSHIELD_GEMINI_KEY', key.trim());
+    localStorage.setItem('BREATHESMART_GEMINI_KEY', key.trim());
   } else {
-    localStorage.removeItem('AEROSHIELD_GEMINI_KEY');
+    localStorage.removeItem('BREATHESMART_GEMINI_KEY');
+  }
+}
+
+export function getAuthToken(): string | null {
+  return localStorage.getItem('BREATHESMART_AUTH_TOKEN');
+}
+
+export function setAuthToken(token: string | null): void {
+  if (token) {
+    localStorage.setItem('BREATHESMART_AUTH_TOKEN', token);
+  } else {
+    localStorage.removeItem('BREATHESMART_AUTH_TOKEN');
   }
 }
 
@@ -168,4 +187,50 @@ export async function upvoteReport(id: string): Promise<CommunityReport> {
   if (!res.ok) throw new Error('Failed to upvote report');
   const json = await res.json();
   return json.data;
+}
+
+// User Auth & Privacy
+export async function register(email: string, password: string, name: string): Promise<UserSession> {
+  const res = await fetch(`${API_BASE}/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password, name })
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Registration failed');
+  setAuthToken(json.data.token);
+  return { ...json.data.user, token: json.data.token };
+}
+
+export async function login(email: string, password: string): Promise<UserSession> {
+  const res = await fetch(`${API_BASE}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Login failed');
+  setAuthToken(json.data.token);
+  return { ...json.data.user, token: json.data.token };
+}
+
+export async function exportUserData(): Promise<Record<string, unknown>> {
+  const token = getAuthToken();
+  const res = await fetch(`${API_BASE}/user/export`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Failed to export data');
+  return json.data;
+}
+
+export async function deleteUserAccount(): Promise<void> {
+  const token = getAuthToken();
+  const res = await fetch(`${API_BASE}/user/account`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Failed to delete account');
+  setAuthToken(null);
 }

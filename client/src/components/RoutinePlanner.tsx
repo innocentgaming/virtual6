@@ -11,7 +11,11 @@ import {
   User, 
   Car, 
   Flame, 
-  Clock 
+  Clock, 
+  DollarSign, 
+  GraduationCap, 
+  Briefcase, 
+  Users 
 } from 'lucide-react';
 import { AQIData, optimizeRoutine, OptimizedRoutineResponse } from '../services/api';
 
@@ -21,6 +25,8 @@ interface RoutinePlannerProps {
 }
 
 export const RoutinePlanner: React.FC<RoutinePlannerProps> = ({ aqiData, selectedCity }) => {
+  const [persona, setPersona] = useState<'family' | 'student' | 'professional' | 'community'>('family');
+  const [budgetTier, setBudgetTier] = useState<'low' | 'moderate' | 'high'>('moderate');
   const [vulnerabilities, setVulnerabilities] = useState<string[]>(['child', 'asthma_respiratory']);
   const [commuteMode, setCommuteMode] = useState<string>('car_solo');
   const [commuteDistanceKm, setCommuteDistanceKm] = useState<number>(15);
@@ -32,11 +38,40 @@ export const RoutinePlanner: React.FC<RoutinePlannerProps> = ({ aqiData, selecte
   const [routineData, setRoutineData] = useState<OptimizedRoutineResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
+  // Auto-tune settings when persona changes
+  const handlePersonaChange = (p: 'family' | 'student' | 'professional' | 'community') => {
+    setPersona(p);
+    if (p === 'student') {
+      setBudgetTier('low');
+      setCommuteMode('walking');
+      setCommuteDistanceKm(3);
+      setHasAirPurifier(false);
+      setVulnerabilities(['none']);
+    } else if (p === 'professional') {
+      setBudgetTier('moderate');
+      setCommuteMode('car_solo');
+      setCommuteDistanceKm(18);
+      setVulnerabilities(['none']);
+    } else if (p === 'family') {
+      setBudgetTier('moderate');
+      setCommuteMode('car_solo');
+      setCommuteDistanceKm(12);
+      setVulnerabilities(['child', 'asthma_respiratory']);
+    } else if (p === 'community') {
+      setBudgetTier('low');
+      setCommuteMode('public_transit');
+      setCommuteDistanceKm(8);
+      setVulnerabilities(['elderly']);
+    }
+  };
+
   const triggerOptimize = async () => {
     setIsLoading(true);
     try {
       const res = await optimizeRoutine({
         city: selectedCity,
+        persona,
+        budgetTier,
         vulnerabilities,
         commuteMode,
         commuteDistanceKm,
@@ -55,16 +90,60 @@ export const RoutinePlanner: React.FC<RoutinePlannerProps> = ({ aqiData, selecte
 
   useEffect(() => {
     triggerOptimize();
-  }, [selectedCity, vulnerabilities, commuteMode, commuteDistanceKm, heatingSource, hasAirPurifier, hasCookingExhaust, morningOutdoorRoutine]);
+  }, [selectedCity, persona, budgetTier, vulnerabilities, commuteMode, commuteDistanceKm, heatingSource, hasAirPurifier, hasCookingExhaust, morningOutdoorRoutine]);
 
   const toggleVulnerability = (v: string) => {
     setVulnerabilities(prev => 
-      prev.includes(v) ? prev.filter(item => item !== v) : [...prev, v]
+      prev.includes(v) ? prev.filter(item => item !== v) : [...prev.filter(item => item !== 'none'), v]
     );
   };
 
   return (
     <div className="space-y-8">
+      {/* Persona Selection Banner */}
+      <section 
+        aria-labelledby="persona-selector-heading"
+        className="p-5 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border border-slate-700 shadow-xl"
+      >
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div>
+            <h2 id="persona-selector-heading" className="text-base font-bold text-white flex items-center gap-2">
+              <User className="w-5 h-5 text-emerald-400" />
+              <span>Target Persona & Lifestyle Profile</span>
+            </h2>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Select your persona to customize schedule timings, budget limits, and vulnerability thresholds.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {[
+              { id: 'family' as const, label: 'Family & Children', icon: Users },
+              { id: 'student' as const, label: 'Student / Budget', icon: GraduationCap },
+              { id: 'professional' as const, label: 'Professional', icon: Briefcase },
+              { id: 'community' as const, label: 'Community Leader', icon: ShieldCheck }
+            ].map(p => {
+              const Icon = p.icon;
+              const isSelected = persona === p.id;
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => handlePersonaChange(p.id)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition border ${
+                    isSelected
+                      ? 'bg-emerald-600 text-white border-emerald-500 shadow-md shadow-emerald-900/30'
+                      : 'bg-slate-800 text-slate-300 border-slate-700 hover:border-slate-600'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  <span>{p.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
       {/* Configuration Header Card */}
       <section 
         aria-labelledby="profile-config-heading"
@@ -72,19 +151,19 @@ export const RoutinePlanner: React.FC<RoutinePlannerProps> = ({ aqiData, selecte
       >
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-6 border-b border-slate-700/60">
           <div>
-            <h2 id="profile-config-heading" className="text-lg font-bold text-white flex items-center gap-2">
+            <h3 id="profile-config-heading" className="text-base font-bold text-white flex items-center gap-2">
               <Calendar className="w-5 h-5 text-emerald-400" />
-              <span>Personalized Low-Emission Smog Routine Planner</span>
-            </h2>
+              <span>Household Parameters ({persona.toUpperCase()})</span>
+            </h3>
             <p className="text-xs text-slate-400 mt-1">
-              Customize your household profile to balance daily obligations with minimal pollutant inhalation and zero unnecessary emissions.
+              Fine-tune your household details to calculate minute-inhalation dosages and emission savings.
             </p>
           </div>
 
           <button
             onClick={triggerOptimize}
             disabled={isLoading}
-            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-emerald-900/30 disabled:opacity-50"
+            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-emerald-900/30 disabled:opacity-50 min-h-[38px]"
           >
             <Sparkles className="w-4 h-4" />
             <span>{isLoading ? 'Recalculating...' : 'Recalculate Schedule'}</span>
@@ -147,7 +226,7 @@ export const RoutinePlanner: React.FC<RoutinePlannerProps> = ({ aqiData, selecte
               <span>Distance: {commuteDistanceKm} km</span>
               <input
                 type="range"
-                min="2"
+                min="1"
                 max="50"
                 value={commuteDistanceKm}
                 onChange={(e) => setCommuteDistanceKm(Number(e.target.value))}
@@ -156,30 +235,47 @@ export const RoutinePlanner: React.FC<RoutinePlannerProps> = ({ aqiData, selecte
             </div>
           </div>
 
-          {/* Heating Source */}
+          {/* Heating & Budget Tier */}
           <div>
             <label className="text-xs font-bold uppercase tracking-wider text-slate-300 block mb-2 flex items-center gap-1.5">
               <Flame className="w-3.5 h-3.5 text-orange-400" />
-              <span>Winter Heating Source</span>
+              <span>Heating & Budget</span>
             </label>
             <select
               value={heatingSource}
               onChange={(e) => setHeatingSource(e.target.value)}
-              className="w-full bg-slate-900/80 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 outline-none focus:border-emerald-500"
+              className="w-full bg-slate-900/80 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 outline-none focus:border-emerald-500 mb-2"
             >
-              <option value="electric_space_heater">Electric Heater / Oil Radiator</option>
+              <option value="electric_space_heater">Electric Heater / Radiator</option>
               <option value="heat_pump">Heat Pump (Reverse AC)</option>
               <option value="unvented_gas">Unvented Gas Heater</option>
               <option value="wood_biomass">Fireplace / Wood Biomass</option>
               <option value="coal_chulha">Coal / Chulha Stove</option>
             </select>
+
+            <div className="flex gap-1.5">
+              {(['low', 'moderate', 'high'] as const).map(tier => (
+                <button
+                  key={tier}
+                  type="button"
+                  onClick={() => setBudgetTier(tier)}
+                  className={`flex-1 py-1 text-[10px] uppercase font-bold rounded border transition ${
+                    budgetTier === tier
+                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50'
+                      : 'bg-slate-900/60 text-slate-500 border-slate-800'
+                  }`}
+                >
+                  {tier === 'low' ? '$ (DIY)' : tier === 'moderate' ? '$$' : '$$$'}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Household Equipment Toggles */}
           <div>
             <label className="text-xs font-bold uppercase tracking-wider text-slate-300 block mb-2 flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />
-              <span>Home Setup</span>
+              <span>Mitigation Setup</span>
             </label>
             <div className="space-y-1.5">
               <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
@@ -209,7 +305,7 @@ export const RoutinePlanner: React.FC<RoutinePlannerProps> = ({ aqiData, selecte
                   onChange={(e) => setMorningOutdoorRoutine(e.target.checked)}
                   className="rounded border-slate-700 text-emerald-600 focus:ring-emerald-500"
                 />
-                <span>Morning Outdoor Run/Walk</span>
+                <span>Morning Outdoor Workout</span>
               </label>
             </div>
           </div>
@@ -255,7 +351,7 @@ export const RoutinePlanner: React.FC<RoutinePlannerProps> = ({ aqiData, selecte
               <span className="text-3xl font-black text-white">
                 {routineData.impactSummary.equivalentCigarettesAvoided}
               </span>
-              <span className="text-xs text-blue-300">cigs / family member / day</span>
+              <span className="text-xs text-blue-300">cigs / member / day</span>
             </div>
             <p className="text-xs text-slate-300 mt-2">
               Based on the Berkeley Earth particulate-to-cigarette inhalation toxicity formula.
@@ -296,7 +392,7 @@ export const RoutinePlanner: React.FC<RoutinePlannerProps> = ({ aqiData, selecte
                 <span>24-Hour Smog-Resilient Schedule Comparison</span>
               </h3>
               <p className="text-xs text-slate-400 mt-0.5">
-                Side-by-side comparison of typical high-exposure routines vs. AeroShield optimized timings.
+                Side-by-side comparison of typical high-exposure routines vs. BreatheSmart optimized timings.
               </p>
             </div>
           </div>
@@ -341,7 +437,7 @@ export const RoutinePlanner: React.FC<RoutinePlannerProps> = ({ aqiData, selecte
                   <div className="text-xs">
                     <span className="text-emerald-400 uppercase font-semibold text-[10px] block mb-1 flex items-center gap-1">
                       <CheckCircle className="w-3 h-3" />
-                      <span>AeroShield Recommended Alternative</span>
+                      <span>BreatheSmart Recommended Alternative</span>
                     </span>
                     <p className="text-white font-medium">
                       {slot.recommendedActivity}
@@ -366,7 +462,7 @@ export const RoutinePlanner: React.FC<RoutinePlannerProps> = ({ aqiData, selecte
           className="bg-slate-800/40 border border-slate-700/60 rounded-2xl p-5"
         >
           <h4 id="priority-recs-heading" className="text-xs uppercase font-bold tracking-wider text-slate-300 mb-3">
-            Core Household Action Directives
+            Core Household Action Directives ({persona.toUpperCase()})
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {routineData.impactSummary.primaryHealthRecommendations.map((rec, i) => (

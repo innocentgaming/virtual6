@@ -8,7 +8,16 @@ import {
   createCommunityReport, 
   upvoteCommunityReport 
 } from '../services/communityService';
-import { sanitizeString, sanitizeNumber } from '../utils/sanitizer';
+import { 
+  registerUser, 
+  loginUser, 
+  getUserProfile, 
+  updateUserProfile, 
+  exportUserData, 
+  deleteUserData 
+} from '../services/authService';
+import { AuthenticatedRequest } from '../middleware/authMiddleware';
+import { sanitizeString } from '../utils/sanitizer';
 import { UserLifestyleProfile, IAQSimulationInput } from '../types';
 
 export async function getAQIHandler(req: Request, res: Response): Promise<void> {
@@ -32,21 +41,23 @@ export function getCitiesListHandler(_req: Request, res: Response): void {
 
 export async function optimizeRoutineHandler(req: Request, res: Response): Promise<void> {
   try {
-    const body = req.body || {};
-    const city = sanitizeString(body.city || 'Delhi', 60);
+    const body = req.body;
+    const city = sanitizeString(body.city || 'Delhi NCR', 60);
     const aqiData = await getCityAQI(city);
 
     const profile: UserLifestyleProfile = {
+      persona: body.persona || 'family',
       city,
-      householdMembers: sanitizeNumber(body.householdMembers, 1, 15, 3),
+      householdMembers: body.householdMembers ?? 3,
       vulnerabilities: Array.isArray(body.vulnerabilities) ? body.vulnerabilities : ['child'],
-      homeAreaSqFt: sanitizeNumber(body.homeAreaSqFt, 100, 10000, 950),
+      homeAreaSqFt: body.homeAreaSqFt ?? 900,
       commuteMode: body.commuteMode || 'car_solo',
-      commuteDistanceKm: sanitizeNumber(body.commuteDistanceKm, 1, 100, 12),
+      commuteDistanceKm: body.commuteDistanceKm ?? 12,
       heatingSource: body.heatingSource || 'electric_space_heater',
       hasAirPurifier: Boolean(body.hasAirPurifier),
       hasCookingExhaust: Boolean(body.hasCookingExhaust),
-      morningOutdoorRoutine: Boolean(body.morningOutdoorRoutine)
+      morningOutdoorRoutine: Boolean(body.morningOutdoorRoutine),
+      budgetTier: body.budgetTier || 'moderate'
     };
 
     const result = optimizeDailyRoutine(profile, aqiData);
@@ -58,13 +69,13 @@ export async function optimizeRoutineHandler(req: Request, res: Response): Promi
 
 export function simulateIAQHandler(req: Request, res: Response): void {
   try {
-    const body = req.body || {};
+    const body = req.body;
     const input: IAQSimulationInput = {
-      roomVolumeM3: sanitizeNumber(body.roomVolumeM3, 10, 500, 45), // ~160 sq ft room
-      outdoorPM25: sanitizeNumber(body.outdoorPM25, 5, 800, 185),
-      airChangesPerHour: sanitizeNumber(body.airChangesPerHour, 0.1, 3.0, 0.6),
-      hasAirPurifier: Boolean(body.hasAirPurifier),
-      purifierCADR_M3H: sanitizeNumber(body.purifierCADR_M3H, 0, 1000, 300),
+      roomVolumeM3: body.roomVolumeM3,
+      outdoorPM25: body.outdoorPM25,
+      airChangesPerHour: body.airChangesPerHour,
+      hasAirPurifier: body.hasAirPurifier,
+      purifierCADR_M3H: body.purifierCADR_M3H,
       indoorSources: {
         cookingWithGas: Boolean(body.indoorSources?.cookingWithGas),
         hasExhaustOn: Boolean(body.indoorSources?.hasExhaustOn),
@@ -72,7 +83,7 @@ export function simulateIAQHandler(req: Request, res: Response): void {
         drySweeping: Boolean(body.indoorSources?.drySweeping),
         smokingOrVaping: Boolean(body.indoorSources?.smokingOrVaping)
       },
-      simulationDurationMinutes: sanitizeNumber(body.simulationDurationMinutes, 15, 180, 60)
+      simulationDurationMinutes: body.simulationDurationMinutes
     };
 
     const simulation = simulateIndoorAirQuality(input);
@@ -84,12 +95,8 @@ export function simulateIAQHandler(req: Request, res: Response): void {
 
 export async function chatHandler(req: Request, res: Response): Promise<void> {
   try {
-    const body = req.body || {};
-    const messages = Array.isArray(body.messages) ? body.messages : [];
-    if (messages.length === 0) {
-      res.status(400).json({ success: false, error: 'Message payload required' });
-      return;
-    }
+    const body = req.body;
+    const messages = body.messages;
 
     const customKey = req.headers['x-gemini-key'] as string | undefined;
     const response = await generateAssistantResponse(
@@ -119,12 +126,7 @@ export function getCommunityHandler(_req: Request, res: Response): void {
 
 export function createCommunityReportHandler(req: Request, res: Response): void {
   try {
-    const { reporterName, category, location, description } = req.body || {};
-    if (!location || !description || !category) {
-      res.status(400).json({ success: false, error: 'Missing required report fields' });
-      return;
-    }
-
+    const { reporterName, category, location, description } = req.body;
     const report = createCommunityReport({
       reporterName,
       category,
@@ -149,5 +151,87 @@ export function upvoteCommunityHandler(req: Request, res: Response): void {
     res.json({ success: true, data: updated });
   } catch (error) {
     res.status(500).json({ success: false, error: 'Failed to upvote report' });
+  }
+}
+
+// Authentication & Privacy Handlers
+export function registerHandler(req: Request, res: Response): void {
+  try {
+    const { email, password, name } = req.body;
+    const auth = registerUser(email, password, name);
+    res.status(201).json({ success: true, data: auth });
+  } catch (error: any) {
+    res.status(400).json({ success: false, error: error.message || 'Registration failed' });
+  }
+}
+
+export function loginHandler(req: Request, res: Response): void {
+  try {
+    const { email, password } = req.body;
+    const auth = loginUser(email, password);
+    res.json({ success: true, data: auth });
+  } catch (error: any) {
+    res.status(401).json({ success: false, error: error.message || 'Authentication failed' });
+  }
+}
+
+export function getProfileHandler(req: AuthenticatedRequest, res: Response): void {
+  try {
+    const user = getUserProfile(req.userId!);
+    if (!user) {
+      res.status(404).json({ success: false, error: 'User not found' });
+      return;
+    }
+    res.json({
+      success: true,
+      data: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        profile: user.profile || null,
+        createdAt: user.createdAt
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Failed to retrieve profile' });
+  }
+}
+
+export function updateProfileHandler(req: AuthenticatedRequest, res: Response): void {
+  try {
+    const user = updateUserProfile(req.userId!, req.body);
+    res.json({
+      success: true,
+      data: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        profile: user.profile
+      }
+    });
+  } catch (error: any) {
+    res.status(400).json({ success: false, error: error.message || 'Profile update failed' });
+  }
+}
+
+export function exportDataHandler(req: AuthenticatedRequest, res: Response): void {
+  try {
+    const exported = exportUserData(req.userId!);
+    res.json({ success: true, data: exported });
+  } catch (error: any) {
+    res.status(404).json({ success: false, error: error.message || 'Export failed' });
+  }
+}
+
+export function deleteAccountHandler(req: AuthenticatedRequest, res: Response): void {
+  try {
+    const success = deleteUserData(req.userId!);
+    if (success) {
+      res.json({ success: true, message: 'User account and all personal data permanently deleted.' });
+    } else {
+      res.status(404).json({ success: false, error: 'User not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Failed to delete account' });
   }
 }

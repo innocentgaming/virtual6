@@ -6,6 +6,12 @@ export type AirQualityLevel =
   | 'Very Unhealthy' 
   | 'Hazardous';
 
+export type UserPersona = 
+  | 'family'          // Family with children/elderly
+  | 'student'         // College student / limited budget
+  | 'professional'    // Commuting professional
+  | 'community';      // Community activist / local leader
+
 export interface PollutantBreakdown {
   pm25: number;      // ug/m3
   pm10: number;      // ug/m3
@@ -40,6 +46,7 @@ export type CommuteMode = 'walking' | 'cycling' | 'motorbike' | 'car_solo' | 'ca
 export type HeatingSource = 'wood_biomass' | 'coal_chulha' | 'unvented_gas' | 'electric_space_heater' | 'heat_pump' | 'central_steam';
 
 export interface UserLifestyleProfile {
+  persona: UserPersona;
   city: string;
   householdMembers: number;
   vulnerabilities: HouseholdVulnerability[];
@@ -50,6 +57,7 @@ export interface UserLifestyleProfile {
   hasAirPurifier: boolean;
   hasCookingExhaust: boolean;
   morningOutdoorRoutine: boolean;
+  budgetTier: 'low' | 'moderate' | 'high';
 }
 
 export interface RoutineTimeSlot {
@@ -57,7 +65,7 @@ export interface RoutineTimeSlot {
   activity: string;
   ambientAQI: number;
   ambientPM25: number;
-  traditionalExposureDoseUg: number; // micrograms inhaled
+  traditionalExposureDoseUg: number;
   recommendedActivity: string;
   mitigatedPM25: number;
   mitigatedExposureDoseUg: number;
@@ -79,11 +87,11 @@ export interface OptimizedRoutineResponse {
 }
 
 export interface IAQSimulationInput {
-  roomVolumeM3: number;              // Room length * width * height
-  outdoorPM25: number;               // ug/m3
-  airChangesPerHour: number;         // 0.2 to 2.0 (leakiness of room)
+  roomVolumeM3: number;
+  outdoorPM25: number;
+  airChangesPerHour: number;
   hasAirPurifier: boolean;
-  purifierCADR_M3H: number;          // Clean Air Delivery Rate in m3/hour
+  purifierCADR_M3H: number;
   indoorSources: {
     cookingWithGas: boolean;
     hasExhaustOn: boolean;
@@ -120,4 +128,23 @@ export interface CommunityReport {
   timestamp: string;
   upvotes: number;
   status: 'verified' | 'reported' | 'mitigated';
+}
+
+export interface UserAccount {
+  id: string;
+  email: string;
+  passwordHash: string;
+  salt: string;
+  name: string;
+  createdAt: string;
+  profile?: UserLifestyleProfile;
+}
+
+export interface AuthResponse {
+  user: {
+    id: string;
+    email: string;
+    name: string;
+  };
+  token: string;
 }

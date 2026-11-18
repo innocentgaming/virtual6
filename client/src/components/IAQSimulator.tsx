@@ -4,11 +4,9 @@ import {
   Wrench, 
   CheckCircle, 
   Sparkles, 
-  DollarSign, 
-  HelpCircle, 
-  Flame, 
-  Wind, 
-  Layers 
+  Layers, 
+  Table as TableIcon, 
+  LineChart 
 } from 'lucide-react';
 import { simulateIAQ, IAQSimulationResult, AQIData } from '../services/api';
 
@@ -29,6 +27,7 @@ export const IAQSimulator: React.FC<IAQSimulatorProps> = ({ aqiData }) => {
 
   const [simulationResult, setSimulationResult] = useState<IAQSimulationResult | null>(null);
   const [activeTab, setActiveTab] = useState<'simulator' | 'diy'>('simulator');
+  const [viewMode, setViewMode] = useState<'chart' | 'table'>('chart');
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Convert sq ft & ft height to m3
@@ -64,7 +63,7 @@ export const IAQSimulator: React.FC<IAQSimulatorProps> = ({ aqiData }) => {
 
   // Render chart on canvas
   useEffect(() => {
-    if (!simulationResult || !canvasRef.current) return;
+    if (viewMode !== 'chart' || !simulationResult || !canvasRef.current) return;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -137,7 +136,7 @@ export const IAQSimulator: React.FC<IAQSimulatorProps> = ({ aqiData }) => {
     ctx.fillText('0 min', padding, height - 10);
     ctx.fillText('30 min', padding + graphWidth / 2 - 15, height - 10);
     ctx.fillText('60 min', width - padding - 35, height - 10);
-  }, [simulationResult]);
+  }, [simulationResult, viewMode]);
 
   return (
     <div className="space-y-6">
@@ -145,19 +144,19 @@ export const IAQSimulator: React.FC<IAQSimulatorProps> = ({ aqiData }) => {
       <div className="flex border-b border-slate-700">
         <button
           onClick={() => setActiveTab('simulator')}
-          className={`py-3 px-6 text-sm font-bold border-b-2 transition flex items-center gap-2 ${
+          className={`py-3 px-6 text-xs md:text-sm font-bold border-b-2 transition flex items-center gap-2 min-h-[44px] ${
             activeTab === 'simulator'
               ? 'border-emerald-400 text-emerald-400'
               : 'border-transparent text-slate-400 hover:text-slate-200'
           }`}
         >
           <Sliders className="w-4 h-4" />
-          <span>Indoor Air Quality (IAQ) Physics Simulator</span>
+          <span>Indoor Air Quality (IAQ) Simulator</span>
         </button>
 
         <button
           onClick={() => setActiveTab('diy')}
-          className={`py-3 px-6 text-sm font-bold border-b-2 transition flex items-center gap-2 ${
+          className={`py-3 px-6 text-xs md:text-sm font-bold border-b-2 transition flex items-center gap-2 min-h-[44px] ${
             activeTab === 'diy'
               ? 'border-emerald-400 text-emerald-400'
               : 'border-transparent text-slate-400 hover:text-slate-200'
@@ -190,6 +189,7 @@ export const IAQSimulator: React.FC<IAQSimulatorProps> = ({ aqiData }) => {
                 value={roomAreaSqFt}
                 onChange={(e) => setRoomAreaSqFt(Number(e.target.value))}
                 className="w-full accent-emerald-500"
+                aria-label="Room size in square feet"
               />
             </div>
 
@@ -206,6 +206,7 @@ export const IAQSimulator: React.FC<IAQSimulatorProps> = ({ aqiData }) => {
                 value={airChangesPerHour}
                 onChange={(e) => setAirChangesPerHour(Number(e.target.value))}
                 className="w-full accent-emerald-500"
+                aria-label="Air changes per hour"
               />
               <span className="text-[10px] text-slate-400 block mt-0.5">
                 (0.3 = tight sealed room, 1.2 = drafty older windows)
@@ -237,6 +238,7 @@ export const IAQSimulator: React.FC<IAQSimulatorProps> = ({ aqiData }) => {
                     value={purifierCADR}
                     onChange={(e) => setPurifierCADR(Number(e.target.value))}
                     className="w-full accent-emerald-500"
+                    aria-label="Purifier clean air delivery rate"
                   />
                   <span className="text-[10px] text-emerald-400/80 block">
                     (Standard commercial: ~250 m³/h; DIY Corsi Box: ~500+ m³/h)
@@ -295,7 +297,7 @@ export const IAQSimulator: React.FC<IAQSimulatorProps> = ({ aqiData }) => {
             </div>
           </div>
 
-          {/* Results & Canvas Graph */}
+          {/* Results & Canvas / Accessible Table Graph */}
           <div className="lg:col-span-2 bg-slate-800/60 backdrop-blur border border-slate-700/80 rounded-2xl p-6 flex flex-col justify-between">
             <div>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
@@ -304,31 +306,97 @@ export const IAQSimulator: React.FC<IAQSimulatorProps> = ({ aqiData }) => {
                     Indoor PM2.5 Concentration Decay Curve (60 Minutes)
                   </h3>
                   <p className="text-xs text-slate-400">
-                    Real-time single-compartment mass balance response
+                    Single-compartment mass balance response vs WHO 15 µg/m³ threshold
                   </p>
                 </div>
 
-                {simulationResult && (
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs text-slate-400">
-                      Final: <strong className="text-emerald-400 text-sm">{simulationResult.finalPM25} µg/m³</strong>
-                    </span>
-                    <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">
-                      -{simulationResult.percentReduction}%
-                    </span>
+                <div className="flex items-center gap-2">
+                  {/* Accessible View Mode Toggle */}
+                  <div className="flex bg-slate-900 border border-slate-700 rounded-lg p-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setViewMode('chart')}
+                      className={`p-1 rounded text-xs transition ${
+                        viewMode === 'chart' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'
+                      }`}
+                      title="Visual Chart View"
+                      aria-label="Visual Chart View"
+                    >
+                      <LineChart className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setViewMode('table')}
+                      className={`p-1 rounded text-xs transition ${
+                        viewMode === 'table' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'
+                      }`}
+                      title="Accessible Screen-Reader Table View"
+                      aria-label="Accessible Screen-Reader Table View"
+                    >
+                      <TableIcon className="w-4 h-4" />
+                    </button>
                   </div>
-                )}
+
+                  {simulationResult && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-slate-400">
+                        Final: <strong className="text-emerald-400 text-sm">{simulationResult.finalPM25} µg/m³</strong>
+                      </span>
+                      <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">
+                        -{simulationResult.percentReduction}%
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
 
-              {/* Canvas Graph */}
-              <div className="bg-slate-900/90 rounded-xl p-2 border border-slate-700/80">
-                <canvas
-                  ref={canvasRef}
-                  width={600}
-                  height={220}
-                  className="w-full h-auto block"
-                />
-              </div>
+              {/* Chart or Accessible Table View */}
+              {viewMode === 'chart' ? (
+                <div className="bg-slate-900/90 rounded-xl p-2 border border-slate-700/80">
+                  <canvas
+                    ref={canvasRef}
+                    width={600}
+                    height={220}
+                    className="w-full h-auto block"
+                    aria-label="Indoor particulate decay curve over 60 minutes"
+                    role="img"
+                  />
+                </div>
+              ) : (
+                <div 
+                  className="bg-slate-900/90 rounded-xl p-3 border border-slate-700/80 max-h-[240px] overflow-y-auto"
+                  tabIndex={0}
+                  role="region"
+                  aria-label="Indoor PM2.5 Time Series Table"
+                >
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-slate-800 text-slate-400">
+                        <th className="py-1 px-2">Time (Min)</th>
+                        <th className="py-1 px-2">Indoor PM2.5 (µg/m³)</th>
+                        <th className="py-1 px-2">WHO Safe Limit</th>
+                        <th className="py-1 px-2">Compliance Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800/60 font-mono text-slate-300">
+                      {simulationResult?.timelinePoints.filter((_, i) => i % 5 === 0).map(pt => (
+                        <tr key={pt.minute}>
+                          <td className="py-1 px-2">{pt.minute} min</td>
+                          <td className="py-1 px-2 text-sky-400 font-bold">{pt.indoorPM25}</td>
+                          <td className="py-1 px-2 text-emerald-400">15</td>
+                          <td className="py-1 px-2">
+                            {pt.indoorPM25 <= 15 ? (
+                              <span className="text-emerald-400 font-bold">✓ Safe</span>
+                            ) : (
+                              <span className="text-amber-400">Elevated</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
 
               {/* Status summary */}
               {simulationResult && (
