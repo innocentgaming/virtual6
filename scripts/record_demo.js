@@ -60,52 +60,63 @@ async function main() {
   await page.goto('http://localhost:5000', { waitUntil: 'networkidle2' });
   await sleep(1500);
 
-  // --- SCENE 1: Real-time AQI Microclimate & Thermal Inversion Dashboard ---
-  console.log('[Recorder] Scene 1: Capturing AQI & Inversion Radar...');
-  await capture(page, 18, 90); // 1.5s initial view
-
-  // Scroll down to view the 6 pollutant cards & vulnerability checklist
-  await smoothScroll(page, 450, 12, 70);
+  // --- SCENE 1: Atmospheric Particle Simulator & Clean Pulse ---
+  console.log('[Recorder] Scene 1: Capturing Atmospheric Canvas & Clean Pulse...');
   await capture(page, 15, 80);
 
-  await smoothScroll(page, 750, 10, 70);
+  // Click on the atmospheric canvas to deploy CADR pulse
+  const canvasEl = await page.$('canvas');
+  if (canvasEl) {
+    const box = await canvasEl.boundingBox();
+    if (box) {
+      await page.mouse.click(box.x + box.width * 0.45, box.y + box.height * 0.55);
+      await sleep(200);
+      await capture(page, 12, 70);
+      await page.mouse.click(box.x + box.width * 0.65, box.y + box.height * 0.45);
+      await sleep(200);
+      await capture(page, 10, 70);
+    }
+  }
+
+  // --- SCENE 2: Meteorological Inversion Column & Lung Deposition ---
+  console.log('[Recorder] Scene 2: Inversion Column & Lung Deposition Model...');
+  await smoothScroll(page, 550, 10, 70);
   await capture(page, 15, 80);
+
+  // Click Midday solar window on Inversion Column
+  await page.evaluate(() => {
+    const btns = Array.from(document.querySelectorAll('button'));
+    const btn = btns.find(b => b.textContent.includes('Midday'));
+    if (btn) btn.click();
+  });
+  await sleep(500);
+  await capture(page, 12, 80);
+
+  // Click Night phase
+  await page.evaluate(() => {
+    const btns = Array.from(document.querySelectorAll('button'));
+    const btn = btns.find(b => b.textContent.includes('Night'));
+    if (btn) btn.click();
+  });
+  await sleep(500);
+  await capture(page, 12, 80);
+
+  // Scroll down to Lung Deposition Visualizer
+  await smoothScroll(page, 1150, 10, 70);
+  await capture(page, 15, 80);
+
+  // Click Outdoor Running in Lung Model
+  await page.evaluate(() => {
+    const btns = Array.from(document.querySelectorAll('button'));
+    const btn = btns.find(b => b.textContent.includes('Outdoor Running'));
+    if (btn) btn.click();
+  });
+  await sleep(500);
+  await capture(page, 14, 80);
 
   // Scroll back to top
-  await smoothScroll(page, 0, 10, 60);
+  await smoothScroll(page, 0, 12, 50);
   await capture(page, 8, 80);
-
-  // Switch city to London
-  console.log('[Recorder] Scene 1b: City switcher demo...');
-  await page.select('#city-select', 'London');
-  await sleep(800);
-  await capture(page, 12, 90);
-
-  // Switch back to Delhi NCR
-  await page.select('#city-select', 'Delhi NCR');
-  await sleep(800);
-  await capture(page, 10, 90);
-
-  // --- SCENE 2: Problem-to-Feature Traceability Matrix Modal ---
-  console.log('[Recorder] Scene 2: Traceability Matrix Modal...');
-  const traceabilityBtn = await page.$('button[title*="Traceability"]');
-  if (traceabilityBtn) {
-    await traceabilityBtn.click();
-    await sleep(400);
-    await capture(page, 15, 80);
-
-    // Scroll inside traceability modal
-    await page.evaluate(() => {
-      const modalScroll = document.querySelector('[role="dialog"] .overflow-y-auto');
-      if (modalScroll) modalScroll.scrollTop = 280;
-    });
-    await capture(page, 12, 80);
-
-    // Close modal
-    const closeBtn = await page.$('[role="dialog"] button[aria-label*="Close"]');
-    if (closeBtn) await closeBtn.click();
-    await sleep(300);
-  }
 
   // --- SCENE 3: Low-Emission Daily Routine Planner ---
   console.log('[Recorder] Scene 3: Routine Planner & Persona Switcher...');
@@ -116,19 +127,9 @@ async function main() {
     await capture(page, 15, 80);
 
     // Click Student persona
-    const studentBtn = await page.evaluate(() => {
-      const btns = Array.from(document.querySelectorAll('button'));
-      const btn = btns.find(b => b.textContent.includes('Student'));
-      if (btn) { btn.click(); return true; }
-      return false;
-    });
-    await sleep(500);
-    await capture(page, 10, 80);
-
-    // Click Professional persona
     await page.evaluate(() => {
       const btns = Array.from(document.querySelectorAll('button'));
-      const btn = btns.find(b => b.textContent.includes('Professional'));
+      const btn = btns.find(b => b.textContent.includes('Student'));
       if (btn) btn.click();
     });
     await sleep(500);
@@ -143,54 +144,63 @@ async function main() {
     await sleep(500);
     await capture(page, 12, 80);
 
-    // Scroll to see Inhaled Dose Math (-83%) & Berkeley Earth Cigarette Avoidance
-    await smoothScroll(page, 480, 10, 70);
-    await capture(page, 16, 90);
+    // Scroll to see Inhaled Dose Math (-83%) & Cigarette Avoidance
+    await smoothScroll(page, 450, 10, 70);
+    await capture(page, 16, 80);
 
     // Scroll down to 24-hr schedule comparison
-    await smoothScroll(page, 950, 12, 70);
-    await capture(page, 20, 90);
+    await smoothScroll(page, 850, 10, 70);
+    await capture(page, 16, 80);
 
-    // Scroll back to top
-    await smoothScroll(page, 0, 10, 60);
+    await smoothScroll(page, 0, 10, 50);
   }
 
   // --- SCENE 4: IAQ Simulator & DIY Corsi-Rosenthal Blueprint ---
-  console.log('[Recorder] Scene 4: IAQ Simulator & DIY Purifier...');
+  console.log('[Recorder] Scene 4: IAQ Differential Solver & Exploded Blueprint...');
   const updatedTabs = await page.$$('nav button[role="tab"]');
   if (updatedTabs[2]) {
     await updatedTabs[2].click(); // IAQ tab
     await sleep(600);
     await capture(page, 15, 80);
 
-    // Toggle Accessible Table View
-    const tableToggleBtn = await page.$('button[title*="Accessible"]');
-    if (tableToggleBtn) {
-      await tableToggleBtn.click();
-      await sleep(300);
-      await capture(page, 14, 80);
-      // Toggle back to visual chart
-      const chartToggleBtn = await page.$('button[title*="Visual"]');
-      if (chartToggleBtn) await chartToggleBtn.click();
-      await sleep(200);
-    }
-
     // Switch to DIY Corsi-Rosenthal Blueprint sub-tab
     await page.evaluate(() => {
       const btns = Array.from(document.querySelectorAll('button'));
-      const btn = btns.find(b => b.textContent.includes('Corsi-Rosenthal'));
+      const btn = btns.find(b => b.textContent.includes('DIY $35 Filter'));
       if (btn) btn.click();
     });
-    await sleep(500);
-    await capture(page, 18, 90);
-
-    // Scroll to see materials & 5 assembly steps
-    await smoothScroll(page, 300, 8, 70);
+    await sleep(600);
     await capture(page, 15, 80);
-    await smoothScroll(page, 0, 8, 60);
+
+    // Click Layer 02 (MERV 13 Filters)
+    await page.evaluate(() => {
+      const btns = Array.from(document.querySelectorAll('button'));
+      const btn = btns.find(b => b.textContent.includes('Layer 02'));
+      if (btn) btn.click();
+    });
+    await sleep(400);
+    await capture(page, 12, 80);
+
+    // Click Layer 03 (Cardboard Shroud)
+    await page.evaluate(() => {
+      const btns = Array.from(document.querySelectorAll('button'));
+      const btn = btns.find(b => b.textContent.includes('Layer 03'));
+      if (btn) btn.click();
+    });
+    await sleep(400);
+    await capture(page, 12, 80);
+
+    // Change fan speed to High
+    await page.evaluate(() => {
+      const btns = Array.from(document.querySelectorAll('button'));
+      const btn = btns.find(b => b.textContent.trim().toLowerCase() === 'high');
+      if (btn) btn.click();
+    });
+    await sleep(400);
+    await capture(page, 12, 80);
   }
 
-  // --- SCENE 5: Dual-Engine GenAI Smog Copilot ---
+  // --- SCENE 5: GenAI Smog Copilot ---
   console.log('[Recorder] Scene 5: GenAI Smog Copilot Chat...');
   const chatTab = (await page.$$('nav button[role="tab"]'))[3];
   if (chatTab) {
@@ -198,59 +208,33 @@ async function main() {
     await sleep(600);
     await capture(page, 14, 80);
 
-    // Click suggested prompt for asthmatic child
+    // Click preset prompt for asthmatic child
     await page.evaluate(() => {
       const btns = Array.from(document.querySelectorAll('button'));
       const btn = btns.find(b => b.textContent.includes('asthmatic 6-year-old'));
       if (btn) btn.click();
     });
 
-    // Wait for AI response to render
     await sleep(1400);
     await capture(page, 20, 80);
-
-    // Scroll down inside chat
-    await page.evaluate(() => {
-      const chatContainer = document.querySelector('.overflow-y-auto');
-      if (chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
-    });
-    await capture(page, 12, 80);
   }
 
-  // --- SCENE 6: Community Smog Defense & Clean Alternatives ---
-  console.log('[Recorder] Scene 6: Community Action & Clean Transition Matrix...');
+  // --- SCENE 6: Community Smog Defense ---
+  console.log('[Recorder] Scene 6: Community Defense Hub...');
   const commTab = (await page.$$('nav button[role="tab"]'))[4];
   if (commTab) {
     await commTab.click(); // Community tab
     await sleep(600);
     await capture(page, 14, 80);
 
-    // Upvote a report
-    const upvoteBtn = await page.$('button[title*="Upvote"]');
-    if (upvoteBtn) {
-      await upvoteBtn.click();
-      await sleep(300);
-      await capture(page, 8, 80);
-    }
-
-    // Scroll down to view Sustainable Clean Alternatives Matrix
-    await smoothScroll(page, 550, 10, 70);
-    await capture(page, 18, 90);
-
-    await smoothScroll(page, 0, 8, 60);
-  }
-
-  // --- SCENE 7: User Authentication, Security & Privacy Center ---
-  console.log('[Recorder] Scene 7: Auth & Privacy Center Modal...');
-  const authBtn = await page.$('button[title*="Account"]');
-  if (authBtn) {
-    await authBtn.click();
+    // Filter by Open Burning
+    await page.evaluate(() => {
+      const btns = Array.from(document.querySelectorAll('button'));
+      const btn = btns.find(b => b.textContent.includes('Open Burning'));
+      if (btn) btn.click();
+    });
     await sleep(400);
-    await capture(page, 15, 80);
-
-    const closeAuthBtn = await page.$('[role="dialog"] button[aria-label*="Close"]');
-    if (closeAuthBtn) await closeAuthBtn.click();
-    await sleep(300);
+    await capture(page, 12, 80);
   }
 
   // Final overview frame
@@ -266,7 +250,7 @@ async function main() {
   execSync(ffmpegCmd, { stdio: 'inherit' });
   console.log(`[Recorder] Success! MP4 Video generated at: ${OUTPUT_VIDEO}`);
 
-  // Cleanup temporary frames directory to keep disk clean
+  // Cleanup temporary frames directory
   fs.rmSync(FRAMES_DIR, { recursive: true, force: true });
   console.log('[Recorder] Cleaned up temporary frame images.');
 }

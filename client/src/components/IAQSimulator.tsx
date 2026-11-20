@@ -6,9 +6,15 @@ import {
   Sparkles, 
   Layers, 
   Table as TableIcon, 
-  LineChart 
+  LineChart,
+  ShieldCheck,
+  Flame,
+  Fan,
+  Wind
 } from 'lucide-react';
 import { simulateIAQ, IAQSimulationResult, AQIData } from '../services/api';
+import { CorsiRosenthalBlueprint } from './CorsiRosenthalBlueprint';
+import { playTactileClick } from './AudioEffects';
 
 interface IAQSimulatorProps {
   aqiData: AQIData | null;
@@ -80,7 +86,7 @@ export const IAQSimulator: React.FC<IAQSimulatorProps> = ({ aqiData }) => {
     const maxPM25 = Math.max(...points.map(p => p.indoorPM25), 60);
 
     // Draw grid lines
-    ctx.strokeStyle = '#334155';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
     ctx.lineWidth = 1;
     for (let i = 0; i <= 4; i++) {
       const y = padding + (graphHeight / 4) * i;
@@ -90,7 +96,7 @@ export const IAQSimulator: React.FC<IAQSimulatorProps> = ({ aqiData }) => {
       ctx.stroke();
 
       const labelVal = Math.round(maxPM25 - (maxPM25 / 4) * i);
-      ctx.fillStyle = '#94a3b8';
+      ctx.fillStyle = '#64748b';
       ctx.font = '10px JetBrains Mono';
       ctx.fillText(`${labelVal}`, 8, y + 3);
     }
@@ -98,6 +104,7 @@ export const IAQSimulator: React.FC<IAQSimulatorProps> = ({ aqiData }) => {
     // Draw WHO Safe Target Line (15 ug/m3)
     const whoY = padding + graphHeight - (15 / maxPM25) * graphHeight;
     ctx.strokeStyle = '#10b981';
+    ctx.lineWidth = 1.5;
     ctx.setLineDash([4, 4]);
     ctx.beginPath();
     ctx.moveTo(padding, whoY);
@@ -105,317 +112,377 @@ export const IAQSimulator: React.FC<IAQSimulatorProps> = ({ aqiData }) => {
     ctx.stroke();
     ctx.setLineDash([]);
     ctx.fillStyle = '#10b981';
+    ctx.font = 'bold 9px JetBrains Mono';
     ctx.fillText('WHO Safe (15 µg/m³)', width - padding - 110, whoY - 5);
 
-    // Draw Indoor PM2.5 Curve
-    ctx.strokeStyle = '#38bdf8';
-    ctx.lineWidth = 3;
+    // Draw Indoor PM2.5 Decay Curve
     ctx.beginPath();
-    points.forEach((pt, index) => {
-      const x = padding + (index / (points.length - 1)) * graphWidth;
-      const y = padding + graphHeight - (pt.indoorPM25 / maxPM25) * graphHeight;
-      if (index === 0) {
-        ctx.moveTo(x, y);
-      } else {
-        ctx.lineTo(x, y);
-      }
+    points.forEach((p, idx) => {
+      const x = padding + (p.minute / 60) * graphWidth;
+      const y = padding + graphHeight - (p.indoorPM25 / maxPM25) * graphHeight;
+      if (idx === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
     });
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 2.5;
     ctx.stroke();
 
     // Fill gradient under curve
-    ctx.lineTo(width - padding, padding + graphHeight);
-    ctx.lineTo(padding, padding + graphHeight);
     const gradient = ctx.createLinearGradient(0, padding, 0, height - padding);
     gradient.addColorStop(0, 'rgba(56, 189, 248, 0.25)');
     gradient.addColorStop(1, 'rgba(56, 189, 248, 0.0)');
+    ctx.lineTo(padding + graphWidth, padding + graphHeight);
+    ctx.lineTo(padding, padding + graphHeight);
+    ctx.closePath();
     ctx.fillStyle = gradient;
     ctx.fill();
 
-    // Axis Labels
-    ctx.fillStyle = '#94a3b8';
-    ctx.fillText('0 min', padding, height - 10);
-    ctx.fillText('30 min', padding + graphWidth / 2 - 15, height - 10);
-    ctx.fillText('60 min', width - padding - 35, height - 10);
+    // Draw Time Axis Labels
+    ctx.fillStyle = '#64748b';
+    ctx.font = '10px JetBrains Mono';
+    for (let m = 0; m <= 60; m += 15) {
+      const x = padding + (m / 60) * graphWidth;
+      ctx.fillText(`${m}m`, x - 8, height - 12);
+    }
   }, [simulationResult, viewMode]);
 
   return (
     <div className="space-y-6">
-      {/* Tab Switcher */}
-      <div className="flex border-b border-slate-700">
-        <button
-          onClick={() => setActiveTab('simulator')}
-          className={`py-3 px-6 text-xs md:text-sm font-bold border-b-2 transition flex items-center gap-2 min-h-[44px] ${
-            activeTab === 'simulator'
-              ? 'border-emerald-400 text-emerald-400'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          <Sliders className="w-4 h-4" />
-          <span>Indoor Air Quality (IAQ) Simulator</span>
-        </button>
+      {/* Sub-Navigation Switcher */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-[#090c10] border border-white/10 shadow-2xl">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+            <Sliders className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold font-mono text-white">
+              Indoor Air Quality (IAQ) Differential Simulator
+            </h2>
+            <p className="text-xs text-slate-400">
+              Single-compartment mass balance differential solver: dC/dt = (P·a·C_out)/V + S/V - (a + k_dep + CADR/V)·C
+            </p>
+          </div>
+        </div>
 
-        <button
-          onClick={() => setActiveTab('diy')}
-          className={`py-3 px-6 text-xs md:text-sm font-bold border-b-2 transition flex items-center gap-2 min-h-[44px] ${
-            activeTab === 'diy'
-              ? 'border-emerald-400 text-emerald-400'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
-          }`}
-        >
-          <Wrench className="w-4 h-4" />
-          <span>DIY Corsi-Rosenthal Box Blueprint ($35)</span>
-        </button>
+        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900 border border-slate-800 self-start sm:self-auto">
+          <button
+            onClick={() => {
+              playTactileClick(800, 0.02);
+              setActiveTab('simulator');
+            }}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold transition ${
+              activeTab === 'simulator'
+                ? 'bg-emerald-600 text-white shadow-md'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <LineChart className="w-3.5 h-3.5" />
+            <span>Differential Solver</span>
+          </button>
+
+          <button
+            onClick={() => {
+              playTactileClick(900, 0.02);
+              setActiveTab('diy');
+            }}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold transition ${
+              activeTab === 'diy'
+                ? 'bg-emerald-600 text-white shadow-md'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Wrench className="w-3.5 h-3.5" />
+            <span>DIY $35 Filter Blueprint</span>
+          </button>
+        </div>
       </div>
 
       {activeTab === 'simulator' ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Controls Panel */}
-          <div className="lg:col-span-1 bg-slate-800/60 backdrop-blur border border-slate-700/80 rounded-2xl p-5 space-y-5">
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <Sliders className="w-4 h-4 text-emerald-400" />
-              <span>Room & Source Parameters</span>
-            </h3>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Controls Column (5 cols) */}
+          <div className="lg:col-span-5 bg-[#090c10] border border-white/10 rounded-2xl p-6 shadow-2xl space-y-5">
+            <div className="pb-3 border-b border-white/[0.08] flex items-center justify-between">
+              <span className="text-xs font-mono uppercase tracking-wider font-bold text-slate-300">
+                Compartment Parameters
+              </span>
+              <span className="text-xs font-mono text-emerald-400">
+                Volume: {roomVolumeM3} m³
+              </span>
+            </div>
 
-            {/* Room Area */}
-            <div>
-              <div className="flex justify-between text-xs text-slate-300 mb-1">
-                <span>Room Size: {roomAreaSqFt} sq ft ({roomVolumeM3} m³)</span>
+            {/* Room Area Slider */}
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-xs font-mono">
+                <span className="text-slate-400">Room Floor Area:</span>
+                <span className="text-white font-bold">{roomAreaSqFt} sq ft</span>
               </div>
               <input
                 type="range"
                 min="80"
-                max="600"
+                max="800"
                 step="20"
                 value={roomAreaSqFt}
-                onChange={(e) => setRoomAreaSqFt(Number(e.target.value))}
-                className="w-full accent-emerald-500"
-                aria-label="Room size in square feet"
+                onChange={(e) => {
+                  playTactileClick(600, 0.01);
+                  setRoomAreaSqFt(Number(e.target.value));
+                }}
+                className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
               />
             </div>
 
-            {/* Infiltration ACH */}
-            <div>
-              <div className="flex justify-between text-xs text-slate-300 mb-1">
-                <span>Draftiness / Leakiness: {airChangesPerHour} ACH</span>
+            {/* Infiltration Rate ACH Slider */}
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-xs font-mono">
+                <span className="text-slate-400">Air Exchange Rate (a):</span>
+                <span className="text-white font-bold">{airChangesPerHour} ACH</span>
               </div>
               <input
                 type="range"
-                min="0.2"
-                max="2.0"
+                min="0.1"
+                max="2.5"
                 step="0.1"
                 value={airChangesPerHour}
-                onChange={(e) => setAirChangesPerHour(Number(e.target.value))}
-                className="w-full accent-emerald-500"
-                aria-label="Air changes per hour"
+                onChange={(e) => {
+                  playTactileClick(650, 0.01);
+                  setAirChangesPerHour(Number(e.target.value));
+                }}
+                className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
               />
-              <span className="text-[10px] text-slate-400 block mt-0.5">
-                (0.3 = tight sealed room, 1.2 = drafty older windows)
-              </span>
+              <p className="text-[10px] text-slate-500 font-mono">
+                0.2 = Sealed weatherstripped room • 1.5 = Drafty / open cracks
+              </p>
             </div>
 
-            {/* Purifier Toggle & CADR */}
-            <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-700 space-y-2">
-              <label className="flex items-center justify-between text-xs font-semibold text-slate-200 cursor-pointer">
-                <span>Air Purifier Operational</span>
-                <input
-                  type="checkbox"
-                  checked={hasAirPurifier}
-                  onChange={(e) => setHasAirPurifier(e.target.checked)}
-                  className="rounded border-slate-700 text-emerald-500"
-                />
-              </label>
+            {/* Filtration Toggle & CADR */}
+            <div className="p-4 rounded-xl bg-slate-950/80 border border-white/10 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Fan className="w-4 h-4 text-emerald-400" />
+                  <span className="text-xs font-mono font-bold text-white">Air Filtration Active</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    playTactileClick(750, 0.02);
+                    setHasAirPurifier(!hasAirPurifier);
+                  }}
+                  className={`w-11 h-6 flex items-center rounded-full p-1 transition ${
+                    hasAirPurifier ? 'bg-emerald-600' : 'bg-slate-800'
+                  }`}
+                >
+                  <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition ${
+                    hasAirPurifier ? 'translate-x-5' : 'translate-x-0'
+                  }`} />
+                </button>
+              </div>
 
               {hasAirPurifier && (
-                <div>
-                  <div className="flex justify-between text-[11px] text-slate-400 mb-1">
-                    <span>Clean Air Delivery Rate: {purifierCADR} m³/h</span>
+                <div className="space-y-1 pt-1">
+                  <div className="flex justify-between text-xs font-mono">
+                    <span className="text-slate-400">Clean Air Delivery (CADR):</span>
+                    <span className="text-emerald-400 font-bold">{purifierCADR} m³/h</span>
                   </div>
                   <input
                     type="range"
                     min="100"
                     max="650"
-                    step="50"
+                    step="25"
                     value={purifierCADR}
-                    onChange={(e) => setPurifierCADR(Number(e.target.value))}
-                    className="w-full accent-emerald-500"
-                    aria-label="Purifier clean air delivery rate"
+                    onChange={(e) => {
+                      playTactileClick(700, 0.01);
+                      setPurifierCADR(Number(e.target.value));
+                    }}
+                    className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
                   />
-                  <span className="text-[10px] text-emerald-400/80 block">
-                    (Standard commercial: ~250 m³/h; DIY Corsi Box: ~500+ m³/h)
+                  <span className="text-[10px] text-slate-500 font-mono block">
+                    Corsi-Rosenthal Box ≈ 350-420 m³/h • Small HEPA ≈ 180 m³/h
                   </span>
                 </div>
               )}
             </div>
 
-            {/* Indoor Pollution Activities */}
-            <div className="space-y-2 pt-2 border-t border-slate-700/60">
-              <span className="text-xs font-bold text-slate-300 uppercase tracking-wider block">
-                Indoor Combustion & Dust Activities
+            {/* Indoor Pollution Emission Sources */}
+            <div className="space-y-2 pt-1">
+              <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider block">
+                Indoor Combustion & Dust Sources
               </span>
 
-              <label className="flex items-center justify-between text-xs text-slate-300">
-                <span>Gas Stove Active</span>
-                <input
-                  type="checkbox"
-                  checked={cookingWithGas}
-                  onChange={(e) => setCookingWithGas(e.target.checked)}
-                  className="rounded border-slate-700 text-emerald-500"
-                />
-              </label>
+              <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                <button
+                  type="button"
+                  onClick={() => {
+                    playTactileClick(600, 0.02);
+                    setCookingWithGas(!cookingWithGas);
+                  }}
+                  className={`p-2.5 rounded-xl border text-left flex items-center justify-between transition ${
+                    cookingWithGas 
+                      ? 'bg-amber-950/40 border-amber-500/50 text-amber-200' 
+                      : 'bg-slate-950/60 border-white/5 text-slate-400'
+                  }`}
+                >
+                  <span>Gas Cooking</span>
+                  <Flame className="w-3.5 h-3.5" />
+                </button>
 
-              {cookingWithGas && (
-                <label className="flex items-center justify-between text-xs text-slate-400 pl-3 border-l-2 border-slate-700">
-                  <span>Range Exhaust Hood Running</span>
-                  <input
-                    type="checkbox"
-                    checked={hasExhaustOn}
-                    onChange={(e) => setHasExhaustOn(e.target.checked)}
-                    className="rounded border-slate-700 text-emerald-500"
-                  />
-                </label>
-              )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    playTactileClick(600, 0.02);
+                    setHasExhaustOn(!hasExhaustOn);
+                  }}
+                  className={`p-2.5 rounded-xl border text-left flex items-center justify-between transition ${
+                    hasExhaustOn 
+                      ? 'bg-emerald-950/40 border-emerald-500/50 text-emerald-200' 
+                      : 'bg-slate-950/60 border-white/5 text-slate-400'
+                  }`}
+                >
+                  <span>Kitchen Hood ON</span>
+                  <Wind className="w-3.5 h-3.5" />
+                </button>
 
-              <label className="flex items-center justify-between text-xs text-slate-300">
-                <span>Incense Sticks / Scented Candles</span>
-                <input
-                  type="checkbox"
-                  checked={incenseOrCandles}
-                  onChange={(e) => setIncenseOrCandles(e.target.checked)}
-                  className="rounded border-slate-700 text-emerald-500"
-                />
-              </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    playTactileClick(600, 0.02);
+                    setIncenseOrCandles(!incenseOrCandles);
+                  }}
+                  className={`p-2.5 rounded-xl border text-left flex items-center justify-between transition ${
+                    incenseOrCandles 
+                      ? 'bg-rose-950/40 border-rose-500/50 text-rose-200' 
+                      : 'bg-slate-950/60 border-white/5 text-slate-400'
+                  }`}
+                >
+                  <span>Incense / Candles</span>
+                  <Flame className="w-3.5 h-3.5" />
+                </button>
 
-              <label className="flex items-center justify-between text-xs text-slate-300">
-                <span>Dry Broom Sweeping (Re-suspension)</span>
-                <input
-                  type="checkbox"
-                  checked={drySweeping}
-                  onChange={(e) => setDrySweeping(e.target.checked)}
-                  className="rounded border-slate-700 text-emerald-500"
-                />
-              </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    playTactileClick(600, 0.02);
+                    setDrySweeping(!drySweeping);
+                  }}
+                  className={`p-2.5 rounded-xl border text-left flex items-center justify-between transition ${
+                    drySweeping 
+                      ? 'bg-rose-950/40 border-rose-500/50 text-rose-200' 
+                      : 'bg-slate-950/60 border-white/5 text-slate-400'
+                  }`}
+                >
+                  <span>Dry Broom Sweeping</span>
+                  <Wind className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Results & Canvas / Accessible Table Graph */}
-          <div className="lg:col-span-2 bg-slate-800/60 backdrop-blur border border-slate-700/80 rounded-2xl p-6 flex flex-col justify-between">
+          {/* Visualization Column (7 cols) */}
+          <div className="lg:col-span-7 bg-[#090c10] border border-white/10 rounded-2xl p-6 shadow-2xl flex flex-col justify-between space-y-4">
             <div>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-                <div>
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-                    Indoor PM2.5 Concentration Decay Curve (60 Minutes)
+              {/* Header with Chart vs Table view switcher */}
+              <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
+                  <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-white">
+                    Indoor PM2.5 Decay Profile (60-Minute Forward Run)
                   </h3>
-                  <p className="text-xs text-slate-400">
-                    Single-compartment mass balance response vs WHO 15 µg/m³ threshold
-                  </p>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  {/* Accessible View Mode Toggle */}
-                  <div className="flex bg-slate-900 border border-slate-700 rounded-lg p-0.5">
-                    <button
-                      type="button"
-                      onClick={() => setViewMode('chart')}
-                      className={`p-1 rounded text-xs transition ${
-                        viewMode === 'chart' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'
-                      }`}
-                      title="Visual Chart View"
-                      aria-label="Visual Chart View"
-                    >
-                      <LineChart className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setViewMode('table')}
-                      className={`p-1 rounded text-xs transition ${
-                        viewMode === 'table' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'
-                      }`}
-                      title="Accessible Screen-Reader Table View"
-                      aria-label="Accessible Screen-Reader Table View"
-                    >
-                      <TableIcon className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  {simulationResult && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-slate-400">
-                        Final: <strong className="text-emerald-400 text-sm">{simulationResult.finalPM25} µg/m³</strong>
-                      </span>
-                      <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">
-                        -{simulationResult.percentReduction}%
-                      </span>
-                    </div>
-                  )}
+                <div className="flex items-center gap-1 p-0.5 rounded-lg bg-slate-900 border border-slate-800">
+                  <button
+                    onClick={() => {
+                      playTactileClick(700, 0.02);
+                      setViewMode('chart');
+                    }}
+                    className={`p-1.5 rounded text-xs transition ${
+                      viewMode === 'chart' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
+                    }`}
+                    title="Interactive Curve Chart"
+                  >
+                    <LineChart className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      playTactileClick(700, 0.02);
+                      setViewMode('table');
+                    }}
+                    className={`p-1.5 rounded text-xs transition ${
+                      viewMode === 'table' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
+                    }`}
+                    title="Accessible Table View (WCAG 2.2 AA)"
+                  >
+                    <TableIcon className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
 
-              {/* Chart or Accessible Table View */}
-              {viewMode === 'chart' ? (
-                <div className="bg-slate-900/90 rounded-xl p-2 border border-slate-700/80">
-                  <canvas
-                    ref={canvasRef}
-                    width={600}
-                    height={220}
-                    className="w-full h-auto block"
-                    aria-label="Indoor particulate decay curve over 60 minutes"
-                    role="img"
-                  />
-                </div>
-              ) : (
-                <div 
-                  className="bg-slate-900/90 rounded-xl p-3 border border-slate-700/80 max-h-[240px] overflow-y-auto"
-                  tabIndex={0}
-                  role="region"
-                  aria-label="Indoor PM2.5 Time Series Table"
-                >
-                  <table className="w-full text-left text-xs">
-                    <thead>
-                      <tr className="border-b border-slate-800 text-slate-400">
-                        <th className="py-1 px-2">Time (Min)</th>
-                        <th className="py-1 px-2">Indoor PM2.5 (µg/m³)</th>
-                        <th className="py-1 px-2">WHO Safe Limit</th>
-                        <th className="py-1 px-2">Compliance Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-800/60 font-mono text-slate-300">
-                      {simulationResult?.timelinePoints.filter((_, i) => i % 5 === 0).map(pt => (
-                        <tr key={pt.minute}>
-                          <td className="py-1 px-2">{pt.minute} min</td>
-                          <td className="py-1 px-2 text-sky-400 font-bold">{pt.indoorPM25}</td>
-                          <td className="py-1 px-2 text-emerald-400">15</td>
-                          <td className="py-1 px-2">
-                            {pt.indoorPM25 <= 15 ? (
-                              <span className="text-emerald-400 font-bold">✓ Safe</span>
-                            ) : (
-                              <span className="text-amber-400">Elevated</span>
-                            )}
-                          </td>
+              {/* View Output */}
+              <div className="mt-4">
+                {viewMode === 'chart' ? (
+                  <div className="bg-slate-950/80 rounded-xl p-3 border border-white/10">
+                    <canvas
+                      ref={canvasRef}
+                      width={600}
+                      height={240}
+                      className="w-full h-auto block"
+                      aria-label="Indoor particulate decay curve over 60 minutes"
+                      role="img"
+                    />
+                  </div>
+                ) : (
+                  <div 
+                    className="bg-slate-950/80 rounded-xl p-3 border border-white/10 max-h-[250px] overflow-y-auto"
+                    tabIndex={0}
+                    role="region"
+                    aria-label="Indoor PM2.5 Time Series Table"
+                  >
+                    <table className="w-full text-left text-xs font-mono">
+                      <thead>
+                        <tr className="border-b border-slate-800 text-slate-400">
+                          <th className="py-1 px-2">Time (Min)</th>
+                          <th className="py-1 px-2">Indoor PM2.5</th>
+                          <th className="py-1 px-2">WHO Safe</th>
+                          <th className="py-1 px-2">Compliance Status</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                      </thead>
+                      <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                        {simulationResult?.timelinePoints.filter((_, i) => i % 5 === 0).map(pt => (
+                          <tr key={pt.minute}>
+                            <td className="py-1 px-2">{pt.minute} min</td>
+                            <td className="py-1 px-2 text-sky-400 font-bold">{pt.indoorPM25} µg/m³</td>
+                            <td className="py-1 px-2 text-emerald-400">15 µg/m³</td>
+                            <td className="py-1 px-2">
+                              {pt.indoorPM25 <= 15 ? (
+                                <span className="text-emerald-400 font-bold">✓ Compliant</span>
+                              ) : (
+                                <span className="text-amber-400">Elevated</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
 
-              {/* Status summary */}
+              {/* Simulation Result Stat Boxes */}
               {simulationResult && (
-                <div className="grid grid-cols-3 gap-3 mt-4 text-center">
-                  <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-700/60">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Peak Indoor PM2.5</span>
-                    <span className="text-base font-black text-rose-400">{simulationResult.peakPM25} µg/m³</span>
+                <div className="grid grid-cols-3 gap-3 mt-4 text-center font-mono">
+                  <div className="p-3 rounded-xl bg-slate-950/80 border border-white/10">
+                    <span className="text-[10px] uppercase text-slate-400 block">Peak Indoor PM2.5</span>
+                    <span className="text-lg font-black text-rose-400">{simulationResult.peakPM25} µg/m³</span>
                   </div>
 
-                  <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-700/60">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Time to WHO Safe</span>
-                    <span className="text-base font-black text-emerald-400">
+                  <div className="p-3 rounded-xl bg-slate-950/80 border border-white/10">
+                    <span className="text-[10px] uppercase text-slate-400 block">Time to WHO Safe</span>
+                    <span className="text-lg font-black text-emerald-400">
                       {simulationResult.timeToReachSafeThresholdMinutes ? `${simulationResult.timeToReachSafeThresholdMinutes} mins` : '> 60 mins'}
                     </span>
                   </div>
 
-                  <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-700/60">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Room Status</span>
-                    <span className="text-base font-black text-slate-200">{simulationResult.airQualityStatus}</span>
+                  <div className="p-3 rounded-xl bg-slate-950/80 border border-white/10">
+                    <span className="text-[10px] uppercase text-slate-400 block">Air Quality Status</span>
+                    <span className="text-sm font-bold text-slate-200 mt-0.5 block">{simulationResult.airQualityStatus}</span>
                   </div>
                 </div>
               )}
@@ -423,13 +490,13 @@ export const IAQSimulator: React.FC<IAQSimulatorProps> = ({ aqiData }) => {
 
             {/* Targeted IAQ Hacks */}
             {simulationResult && simulationResult.actionableHacks.length > 0 && (
-              <div className="mt-5 pt-4 border-t border-slate-700/60">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 mb-2.5">
-                  High-Impact Indoor Hacks for Your Current Setup
+              <div className="pt-3 border-t border-white/[0.08]">
+                <h4 className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-300 mb-2">
+                  Tailored Mitigation Protocols for Current Compartment:
                 </h4>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {simulationResult.actionableHacks.map((hack, i) => (
-                    <div key={i} className="flex items-start gap-2 text-xs text-slate-300 bg-slate-900/50 p-2.5 rounded-lg border border-slate-800">
+                    <div key={i} className="flex items-start gap-2 text-xs text-slate-300 bg-slate-950/60 p-2.5 rounded-lg border border-white/5">
                       <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
                       <span>{hack}</span>
                     </div>
@@ -440,73 +507,8 @@ export const IAQSimulator: React.FC<IAQSimulatorProps> = ({ aqiData }) => {
           </div>
         </div>
       ) : (
-        /* DIY Corsi-Rosenthal Box Blueprint */
-        <div className="bg-slate-800/60 backdrop-blur border border-slate-700/80 rounded-2xl p-6 space-y-6">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-4 border-b border-slate-700">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-bold text-white">The Corsi-Rosenthal Box Blueprint</span>
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
-                  CADR ~450+ CFM
-                </span>
-              </div>
-              <p className="text-xs text-slate-400 mt-1">
-                Invented by environmental engineer Dr. Richard Corsi and Jim Rosenthal. Outperforms $300 commercial HEPA purifiers for just $35-$45.
-              </p>
-            </div>
-
-            <div className="bg-emerald-950/60 border border-emerald-500/40 rounded-xl p-3 text-right">
-              <span className="text-[10px] uppercase font-bold text-emerald-400 block">Estimated Cost Comparison</span>
-              <div className="flex items-baseline gap-2">
-                <span className="text-xl font-black text-white">$35 - $45</span>
-                <span className="text-xs text-slate-400 line-through">$300+ HEPA</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Required Materials */}
-            <div className="bg-slate-900/80 rounded-xl p-5 border border-slate-700 space-y-3">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
-                <Layers className="w-4 h-4" />
-                <span>Bill of Materials</span>
-              </h4>
-              <ul className="text-xs text-slate-300 space-y-2">
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <span><strong>1x Standard 20" Box Fan:</strong> 3-speed household box fan ($18–$22).</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <span><strong>4x MERV 13 Filters:</strong> 20" x 20" x 1" or 2" pleated furnace filters ($5–$7 each).</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <span><strong>Cardboard Base & Shroud:</strong> Scrap delivery box cardboard.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <span><strong>Duct Tape:</strong> Standard heavy-duty utility tape.</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Assembly Steps */}
-            <div className="bg-slate-900/80 rounded-xl p-5 border border-slate-700 space-y-3">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
-                <Wrench className="w-4 h-4" />
-                <span>5-Step Assembly Instructions</span>
-              </h4>
-              <ol className="text-xs text-slate-300 space-y-2 list-decimal list-inside">
-                <li><strong>Cube Formation:</strong> Form a 4-sided cube with the 4 filters. Make sure the arrows on all filters point <em>inward</em>.</li>
-                <li><strong>Bottom Seal:</strong> Tape a 20" x 20" cardboard square to seal the bottom surface completely.</li>
-                <li><strong>Top Fan Mount:</strong> Place the box fan on top, blowing <em>upward/outward</em> away from the cube.</li>
-                <li><strong>The Cardboard Shroud (Crucial):</strong> Cut a 15" circular hole in a piece of cardboard and tape it over the front grill of the fan. This stops tip vortex leakage and boosts airflow by 40%.</li>
-                <li><strong>Air-Tight Taping:</strong> Generously tape all seams and edges so no air bypasses the filters.</li>
-              </ol>
-            </div>
-          </div>
-        </div>
+        /* Exploded Technical Blueprint for $35 Corsi-Rosenthal Box */
+        <CorsiRosenthalBlueprint />
       )}
     </div>
   );
