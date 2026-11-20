@@ -17,9 +17,26 @@
 
 **A production-ready GenAI assistant that empowers households and neighborhoods to navigate severe winter air pollution with scientifically optimized daily routines, low-cost indoor air quality (IAQ) hacks, DIY air purifiers, and crowdsourced community action.**
 
-[Explore Features](#-key-capabilities--user-personas) • [Traceability Matrix](#-problem-to-feature-traceability-matrix) • [Architecture](#-system-architecture--data-flow) • [Mathematical Models](#-scientific--mathematical-foundations) • [Security](#-security-architecture--threat-model) • [Testing Report](#-testing--verification-evidence) • [Quick Start](#-quick-start-guide)
+[Explore Features](#-key-capabilities--user-personas) • [Traceability Matrix](#-problem-to-feature-traceability-matrix) • [Architecture](#-system-architecture--data-flow) • [Mathematical Models](#-scientific--mathematical-foundations) • [Security](#-security-architecture--threat-model) • [Testing Report](#-testing--verification-evidence) • [Demo Video](#-1080p-demo-walkthrough-video) • [Quick Start](#-quick-start-guide)
 
 </div>
+
+---
+
+## 🎬 1080p Demo Walkthrough Video
+
+A high-definition automated walkthrough demonstrating all 7 core modules, accessibility controls, interactive physics simulations, and AI copilot interactions is included directly in the repository:
+
+🎥 **File:** [`breathesmart_demo.mp4`](./breathesmart_demo.mp4) (Full HD 1920×1080, 60fps, 38s walkthrough)
+
+### Demonstrated Highlights:
+1. **Real-Time AQI & Inversion Warnings**: Thermal radiation inversion alert banner with 6 granular pollutant metrics (PM2.5, PM10, $NO_2$, $O_3$, $CO$, $SO_2$).
+2. **EPA Exposure Dose Optimization**: Persona-based daily planner calculating inhalation reductions (-83%) and cigarette equivalents avoided.
+3. **Differential Mass-Balance IAQ Simulator**: Live indoor PM2.5 decay curve modeling ACH, deposition, and DIY Corsi-Rosenthal filtration with Accessible Table toggle.
+4. **Corsi-Rosenthal Box Blueprint**: Step-by-step assembly guide for a \$35, 250 CFM DIY air filter.
+5. **Dual-Engine Gemini Flash Copilot**: Natural language question answering with prompt injection protection and emergency medical triage.
+6. **Community Clean Air Hub**: Crowdsourced incident logging, voting, and sustainable low-emission transition matrix.
+7. **Accessibility & Traceability**: High-contrast toggles, keyboard focus indicators, and full Problem-to-Feature Traceability Matrix (REQ-01 to REQ-08).
 
 ---
 
