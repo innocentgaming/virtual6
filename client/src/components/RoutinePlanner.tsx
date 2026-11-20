@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { AQIData, optimizeRoutine, OptimizedRoutineResponse } from '../services/api';
 import { playTactileClick } from './AudioEffects';
+import { RouteExposureOptimizer } from './RouteExposureOptimizer';
 
 interface RoutinePlannerProps {
   aqiData: AQIData | null;
@@ -479,6 +480,9 @@ export const RoutinePlanner: React.FC<RoutinePlannerProps> = ({ aqiData, selecte
           </div>
         </section>
       )}
+
+      {/* Urban Commute Shield & Route Exposure Optimizer */}
+      <RouteExposureOptimizer city={selectedCity} />
 
       {/* Primary Health Recommendations */}
       {routineData && routineData.impactSummary.primaryHealthRecommendations.length > 0 && (

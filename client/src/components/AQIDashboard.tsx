@@ -19,6 +19,7 @@ import { AQIData } from '../services/api';
 import { AtmosphericCanvas } from './AtmosphericCanvas';
 import { InversionColumn } from './InversionColumn';
 import { LungDepositionVisualizer } from './LungDepositionVisualizer';
+import { PredictiveSmogTimeline } from './PredictiveSmogTimeline';
 
 interface AQIDashboardProps {
   data: AQIData | null;
@@ -316,7 +317,12 @@ export const AQIDashboard: React.FC<AQIDashboardProps> = ({ data, isLoading }) =
         isInversionLikely={data.isInversionLikely} 
       />
 
-      {/* 5. Human Respiratory Particulate Deposition Simulator */}
+      {/* 5. 72-Hour Planetary Boundary Layer & Smog Trajectory Model */}
+      <PredictiveSmogTimeline 
+        city={data.city} 
+      />
+
+      {/* 6. Human Respiratory Particulate Deposition Simulator */}
       <LungDepositionVisualizer 
         pm25={data.pollutants.pm25} 
       />

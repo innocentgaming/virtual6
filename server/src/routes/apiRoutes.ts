@@ -13,7 +13,10 @@ import {
   getProfileHandler,
   updateProfileHandler,
   exportDataHandler,
-  deleteAccountHandler
+  deleteAccountHandler,
+  getPredictiveForecastHandler,
+  getRouteExposureHandler,
+  getMultiZoneIAQHandler
 } from '../controllers/apiController';
 import { 
   validateBody, 
@@ -39,6 +42,13 @@ router.delete('/user/account', requireAuth, deleteAccountHandler);
 // Air quality endpoints
 router.get('/aqi', getAQIHandler);
 router.get('/aqi/cities', getCitiesListHandler);
+router.get('/aqi/forecast', getPredictiveForecastHandler);
+
+// Route exposure optimization
+router.get('/route/exposure', getRouteExposureHandler);
+
+// Multi-zone IAQ & filter lifecycle prognostics
+router.get('/iaq/multizone', getMultiZoneIAQHandler);
 
 // Routine optimization
 router.post('/routine/optimize', validateBody(routineSchema), optimizeRoutineHandler);

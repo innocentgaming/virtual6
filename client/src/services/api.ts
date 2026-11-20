@@ -71,6 +71,100 @@ export interface CommunityReport {
   status: 'verified' | 'reported' | 'mitigated';
 }
 
+export interface HourlyForecastPoint {
+  hourOffset: number;
+  timestamp: string;
+  timeLabel: string;
+  dayLabel: string;
+  predictedAQI: number;
+  predictedPM25: number;
+  predictedPM10: number;
+  predictedO3: number;
+  predictedNO2: number;
+  boundaryLayerHeightMeters: number;
+  isInversionActive: boolean;
+  inversionSeverityIndex: number;
+  dispersionRating: 'Excellent' | 'Moderate' | 'Poor' | 'Hazardous Stagnation';
+  recommendedAction: string;
+  isOptimalVentilationWindow: boolean;
+}
+
+export interface PredictiveSmogReport {
+  city: string;
+  generatedAt: string;
+  baselineAQI: number;
+  forecastPoints: HourlyForecastPoint[];
+  peakSmogRiskHour: string;
+  safestVentilationWindowTomorrow: string;
+  threeDayAverageAQI: number;
+  inversionWarningSeverity: 'None' | 'Moderate' | 'Severe' | 'Critical Stagnation';
+}
+
+export interface CommuteRouteOption {
+  id: string;
+  name: string;
+  mode: 'highway_car' | 'metro_transit' | 'green_buffer' | 'active_walk_cycle';
+  durationMinutes: number;
+  distanceKm: number;
+  routeExposurePM25: number;
+  minuteVentilationVE: number;
+  inhaledDoseUg: number;
+  tailpipeCO2Grams: number;
+  tailpipePM25Grams: number;
+  respiratoryRiskLevel: 'Low' | 'Moderate' | 'High' | 'Severe Hazard';
+  protectionTips: string[];
+}
+
+export interface RouteOptimizationResult {
+  city: string;
+  ambientPM25: number;
+  commuteDistanceKm: number;
+  routes: CommuteRouteOption[];
+  recommendedRouteId: string;
+  bestOptionDoseReductionPercent: number;
+  bestOptionDoseAvoidedUg: number;
+  bestOptionCO2SavedKg: number;
+  clinicalImpactNotes: string;
+}
+
+export interface ZoneConfig {
+  id: string;
+  name: string;
+  volumeM3: number;
+  infiltrationACH: number;
+  emissionRateUgMin: number;
+  hasPurifier: boolean;
+  purifierCADR_M3H: number;
+  currentPM25: number;
+  targetSafePM25: number;
+  complianceStatus: 'Safe' | 'Moderate' | 'Hazardous';
+  zonalAdvice: string;
+}
+
+export interface FilterPrognostic {
+  filterType: 'MERV11' | 'MERV13_Pleated' | 'True_HEPA_H13' | 'Corsi_Rosenthal_Box';
+  cumulativeHoursRun: number;
+  ambientAvgPM25: number;
+  particulateMassLoadedGrams: number;
+  saturationPercentage: number;
+  initialPressureDropPa: number;
+  currentPressureDropPa: number;
+  airflowDegradationPercent: number;
+  estimatedRemainingDays: number;
+  healthAlert: 'Optimal Condition' | 'Moderate Dust Loading' | 'Clogged - Replace Filter Immediately';
+}
+
+export interface MultiZoneSimulationResult {
+  householdId: string;
+  outdoorPM25: number;
+  zones: ZoneConfig[];
+  wholeHouseAveragePM25: number;
+  driftVectors: { fromZone: string; toZone: string; driftPM25UgMin: number }[];
+  filterDiagnostic: FilterPrognostic;
+  highestRiskZone: string;
+  strategicInterventions: string[];
+}
+
 export interface UserSession {
   id: string;
   email: string;
@@ -233,4 +327,42 @@ export async function deleteUserAccount(): Promise<void> {
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'Failed to delete account');
   setAuthToken(null);
+}
+
+// 72-Hour Predictive Smog Forecast
+export async function fetchPredictiveSmogForecast(city: string): Promise<PredictiveSmogReport> {
+  const res = await fetch(`${API_BASE}/aqi/forecast?city=${encodeURIComponent(city)}`);
+  if (!res.ok) throw new Error('Failed to fetch predictive smog forecast');
+  const json = await res.json();
+  return json.data;
+}
+
+// Commute Corridor Route Exposure
+export async function fetchRouteExposure(
+  city: string,
+  distanceKm: number = 15,
+  isVulnerable: boolean = false
+): Promise<RouteOptimizationResult> {
+  const res = await fetch(
+    `${API_BASE}/route/exposure?city=${encodeURIComponent(city)}&distanceKm=${distanceKm}&vulnerable=${isVulnerable}`
+  );
+  if (!res.ok) throw new Error('Failed to evaluate commute routes');
+  const json = await res.json();
+  return json.data;
+}
+
+// Multi-Zone IAQ & Filter Lifecycle Prognostics
+export async function fetchMultiZoneIAQ(
+  outdoorPM25: number,
+  cooking: boolean = true,
+  bedroomPurifier: boolean = true,
+  livingPurifier: boolean = false,
+  filterHours: number = 320
+): Promise<MultiZoneSimulationResult> {
+  const res = await fetch(
+    `${API_BASE}/iaq/multizone?outdoorPM25=${outdoorPM25}&cooking=${cooking}&bedroomPurifier=${bedroomPurifier}&livingPurifier=${livingPurifier}&filterHours=${filterHours}`
+  );
+  if (!res.ok) throw new Error('Failed to simulate multi-zone IAQ');
+  const json = await res.json();
+  return json.data;
 }

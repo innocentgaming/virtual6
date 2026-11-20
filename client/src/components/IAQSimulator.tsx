@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { simulateIAQ, IAQSimulationResult, AQIData } from '../services/api';
 import { CorsiRosenthalBlueprint } from './CorsiRosenthalBlueprint';
+import { MultiZoneIAQManager } from './MultiZoneIAQManager';
 import { playTactileClick } from './AudioEffects';
 
 interface IAQSimulatorProps {
@@ -32,7 +33,7 @@ export const IAQSimulator: React.FC<IAQSimulatorProps> = ({ aqiData }) => {
   const [drySweeping, setDrySweeping] = useState<boolean>(false);
 
   const [simulationResult, setSimulationResult] = useState<IAQSimulationResult | null>(null);
-  const [activeTab, setActiveTab] = useState<'simulator' | 'diy'>('simulator');
+  const [activeTab, setActiveTab] = useState<'simulator' | 'diy' | 'multizone'>('simulator');
   const [viewMode, setViewMode] = useState<'chart' | 'table'>('chart');
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -192,7 +193,22 @@ export const IAQSimulator: React.FC<IAQSimulatorProps> = ({ aqiData }) => {
             }`}
           >
             <Wrench className="w-3.5 h-3.5" />
-            <span>DIY $35 Filter Blueprint</span>
+            <span>DIY $35 Blueprint</span>
+          </button>
+
+          <button
+            onClick={() => {
+              playTactileClick(950, 0.02);
+              setActiveTab('multizone');
+            }}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold transition ${
+              activeTab === 'multizone'
+                ? 'bg-emerald-600 text-white shadow-md'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Layers className="w-3.5 h-3.5" />
+            <span>Multi-Zone & Filter Prognostics</span>
           </button>
         </div>
       </div>
@@ -506,9 +522,12 @@ export const IAQSimulator: React.FC<IAQSimulatorProps> = ({ aqiData }) => {
             )}
           </div>
         </div>
-      ) : (
+      ) : activeTab === 'diy' ? (
         /* Exploded Technical Blueprint for $35 Corsi-Rosenthal Box */
         <CorsiRosenthalBlueprint />
+      ) : (
+        /* Multi-Zone Floorplan & Filter Dust Saturation Prognostics */
+        <MultiZoneIAQManager outdoorPM25={outdoorPM25} />
       )}
     </div>
   );

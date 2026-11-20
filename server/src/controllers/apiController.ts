@@ -19,6 +19,9 @@ import {
 import { AuthenticatedRequest } from '../middleware/authMiddleware';
 import { sanitizeString } from '../utils/sanitizer';
 import { UserLifestyleProfile, IAQSimulationInput } from '../types';
+import { generate72HourSmogForecast } from '../services/predictiveSmogEngine';
+import { evaluateCommuteRoutes } from '../services/routeExposureService';
+import { simulateMultiZoneIAQ } from '../services/multiZoneIAQService';
 
 export async function getAQIHandler(req: Request, res: Response): Promise<void> {
   try {
@@ -233,5 +236,49 @@ export function deleteAccountHandler(req: AuthenticatedRequest, res: Response): 
     }
   } catch (error) {
     res.status(500).json({ success: false, error: 'Failed to delete account' });
+  }
+}
+
+export async function getPredictiveForecastHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const city = sanitizeString((req.query.city as string) || 'Delhi NCR', 60);
+    const aqiData = await getCityAQI(city);
+    const forecast = generate72HourSmogForecast(
+      city,
+      aqiData.aqi,
+      aqiData.pollutants.pm25,
+      aqiData.temperature,
+      aqiData.humidity
+    );
+    res.json({ success: true, data: forecast });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Failed to generate 72-hour smog forecast' });
+  }
+}
+
+export async function getRouteExposureHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const city = sanitizeString((req.query.city as string) || 'Delhi NCR', 60);
+    const distanceKm = Number(req.query.distanceKm) || 15;
+    const isVulnerable = req.query.vulnerable === 'true';
+    const aqiData = await getCityAQI(city);
+    const result = evaluateCommuteRoutes(city, aqiData.pollutants.pm25, distanceKm, isVulnerable);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Failed to evaluate commute routes' });
+  }
+}
+
+export async function getMultiZoneIAQHandler(req: Request, res: Response): Promise<void> {
+  try {
+    const outdoorPM25 = Number(req.query.outdoorPM25) || 195;
+    const kitchenActive = req.query.cooking !== 'false';
+    const bedroomPurifier = req.query.bedroomPurifier !== 'false';
+    const livingPurifier = req.query.livingPurifier === 'true';
+    const filterHours = Number(req.query.filterHours) || 320;
+    const result = simulateMultiZoneIAQ(outdoorPM25, kitchenActive, bedroomPurifier, livingPurifier, filterHours);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Failed to simulate multi-zone IAQ' });
   }
 }
