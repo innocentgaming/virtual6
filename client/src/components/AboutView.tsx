@@ -80,7 +80,7 @@ export const AboutView: React.FC<AboutViewProps> = ({
             Diurnal Inversion Physics
           </h3>
           <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-            Models nocturnal radiation temperature inversions and convective mixing depths ($z_i(t) \approx 600\text{m} - 900\text{m}$), identifying safe midday ventilation windows.
+            Models nocturnal radiation temperature inversions and convective mixing depths (z_i(t) ≈ 600m – 900m), identifying safe midday ventilation windows.
           </p>
           <div className="text-[11px] font-mono text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800">
             Open-Meteo European CAMS Telemetry
@@ -96,7 +96,7 @@ export const AboutView: React.FC<AboutViewProps> = ({
             Mass-Balance IAQ Solver
           </h3>
           <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-            Solves the fundamental aerosol differential equation $V \frac{dC}{dt} = P \cdot ACH \cdot C_{out} - (ACH + k_{dep} + CADR/V) \cdot C$ for true indoor particulate decay.
+            Solves the fundamental aerosol differential equation V · (dC/dt) = P · ACH · C_out − (ACH + k_dep + CADR/V) · C for true indoor particulate decay.
           </p>
           <div className="text-[11px] font-mono text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800">
             Darcy-Weisbach Filter Aerodynamics
@@ -112,7 +112,7 @@ export const AboutView: React.FC<AboutViewProps> = ({
             Clinical Inhaled Dose Math
           </h3>
           <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-            Calculates minute ventilation ($V_E$) particulate dose ($Dose = \sum C_i \cdot V_i \cdot T_i$) and Berkeley Earth cigarette equivalence ($264\,\mu\text{g} = 1\text{ cig}$).
+            Calculates minute ventilation (V_E) particulate dose (Dose = Σ C_i · V_i · T_i) and Berkeley Earth cigarette equivalence (264 µg PM2.5 ≈ 1 cigarette).
           </p>
           <div className="text-[11px] font-mono text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800">
             WHO 2021 & US EPA 40 CFR 58

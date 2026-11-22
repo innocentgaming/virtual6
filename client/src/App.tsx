@@ -90,10 +90,11 @@ export const App: React.FC = () => {
     try {
       const data = await fetchAQI(city);
       setAqiData(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to load AQI:', err);
       setHasError(true);
-      setErrorMessage(err.message || 'Unable to establish atmospheric sensor telemetry stream.');
+      const msg = err instanceof Error ? err.message : 'Unable to establish atmospheric sensor telemetry stream.';
+      setErrorMessage(msg);
     } finally {
       setIsLoading(false);
     }

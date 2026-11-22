@@ -3,57 +3,50 @@ import edge_tts
 import os
 import subprocess
 
-VOICE = "en-IN-PrabhatNeural"
+VOICE = "en-US-BrianNeural"
 
 SEGMENTS = [
     {
         "id": "reel_scene1",
-        "text": "What if one platform could help you understand the air you breathe?",
+        "text": "Every breath matters. But do you really know what you're breathing?",
         "start": 0.0,
-        "end": 5.0,
-        "rate": "+5%"
-    },
-    {
-        "id": "reel_scene2",
-        "text": "Explore air quality readings and understand important pollution indicators through one intelligent dashboard.",
-        "start": 5.0,
-        "end": 15.0,
+        "end": 7.0,
         "rate": "+4%"
     },
     {
+        "id": "reel_scene2",
+        "text": "Introducing BreatheSmart AI, an intelligent platform designed to help you understand the air around you.",
+        "start": 7.0,
+        "end": 15.0,
+        "rate": "+5%"
+    },
+    {
         "id": "reel_scene3",
-        "text": "Make better daily decisions with an air-quality-aware routine planning experience.",
+        "text": "Explore air quality readings, monitor important pollutants, and understand environmental conditions through one powerful dashboard.",
         "start": 15.0,
-        "end": 25.0,
+        "end": 27.0,
         "rate": "+4%"
     },
     {
         "id": "reel_scene4",
-        "text": "Explore indoor air quality with an interactive simulator.",
-        "start": 25.0,
-        "end": 35.0,
-        "rate": "+3%"
+        "text": "Plan smarter daily routines, explore indoor air quality, and discover practical clean-air solutions.",
+        "start": 27.0,
+        "end": 39.0,
+        "rate": "+4%"
     },
     {
         "id": "reel_scene5",
-        "text": "Ask questions and get conversational assistance from the integrated AI assistant.",
-        "start": 35.0,
-        "end": 45.0,
+        "text": "Get conversational AI assistance and explore a community built around clean-air awareness.",
+        "start": 39.0,
+        "end": 51.0,
         "rate": "+4%"
     },
     {
         "id": "reel_scene6",
-        "text": "Discover practical clean-air guidance and connect with a community focused on awareness.",
-        "start": 45.0,
-        "end": 53.0,
-        "rate": "+5%"
-    },
-    {
-        "id": "reel_scene7",
-        "text": "One platform. Smarter air awareness. This is BreatheSmart AI. Explore it today!",
-        "start": 53.0,
+        "text": "Understand the air. Make smarter choices. Protect your health. This is BreatheSmart AI.",
+        "start": 51.0,
         "end": 60.0,
-        "rate": "+35%"
+        "rate": "+4%"
     }
 ]
 
@@ -65,9 +58,20 @@ async def generate():
     
     for seg in SEGMENTS:
         mp3_path = os.path.join(out_dir, f"{seg['id']}.mp3")
-        comm = edge_tts.Communicate(seg["text"], VOICE, rate=seg["rate"])
-        await comm.save(mp3_path)
+        success = False
+        for attempt in range(5):
+            try:
+                comm = edge_tts.Communicate(seg["text"], VOICE, rate=seg["rate"])
+                await comm.save(mp3_path)
+                success = True
+                break
+            except Exception as e:
+                print(f"[{seg['id']}] Attempt {attempt+1} failed: {e}. Retrying in 1s...")
+                await asyncio.sleep(1.0)
         
+        if not success:
+            raise RuntimeError(f"Failed to generate {seg['id']}")
+
         # probe duration
         res = subprocess.run([
             FFMPEG, "-i", mp3_path, "-hide_banner"
@@ -76,6 +80,7 @@ async def generate():
             if "Duration:" in line:
                 dur = line.split("Duration:")[1].split(",")[0].strip()
                 print(f"[{seg['id']}] Target: {seg['start']}s -> {seg['end']}s ({seg['end']-seg['start']}s) | Actual: {dur}")
+        await asyncio.sleep(0.3)
 
 if __name__ == "__main__":
     asyncio.run(generate())

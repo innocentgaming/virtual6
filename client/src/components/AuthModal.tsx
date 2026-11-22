@@ -23,6 +23,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [infoMsg, setInfoMsg] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,8 +53,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setTimeout(() => {
         onClose();
       }, 700);
-    } catch (err: any) {
-      setError(err.message || 'Authentication failed');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Authentication failed');
     } finally {
       setIsSubmitting(false);
     }
@@ -61,8 +70,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       a.download = `breathesmart_profile_${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       setInfoMsg('Profile data exported successfully (JSON format).');
-    } catch (err: any) {
-      setError(err.message || 'Failed to export data');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to export data');
     }
   };
 
@@ -73,8 +82,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         onUserChange(null);
         setInfoMsg('Account and all personal data deleted.');
         setTimeout(() => onClose(), 800);
-      } catch (err: any) {
-        setError(err.message || 'Failed to delete account');
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Failed to delete account');
       }
     }
   };

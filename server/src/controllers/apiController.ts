@@ -163,8 +163,9 @@ export function registerHandler(req: Request, res: Response): void {
     const { email, password, name } = req.body;
     const auth = registerUser(email, password, name);
     res.status(201).json({ success: true, data: auth });
-  } catch (error: any) {
-    res.status(400).json({ success: false, error: error.message || 'Registration failed' });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Registration failed';
+    res.status(400).json({ success: false, error: message });
   }
 }
 
@@ -173,8 +174,9 @@ export function loginHandler(req: Request, res: Response): void {
     const { email, password } = req.body;
     const auth = loginUser(email, password);
     res.json({ success: true, data: auth });
-  } catch (error: any) {
-    res.status(401).json({ success: false, error: error.message || 'Authentication failed' });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Authentication failed';
+    res.status(401).json({ success: false, error: message });
   }
 }
 
@@ -212,8 +214,9 @@ export function updateProfileHandler(req: AuthenticatedRequest, res: Response): 
         profile: user.profile
       }
     });
-  } catch (error: any) {
-    res.status(400).json({ success: false, error: error.message || 'Profile update failed' });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Profile update failed';
+    res.status(400).json({ success: false, error: message });
   }
 }
 
@@ -221,8 +224,9 @@ export function exportDataHandler(req: AuthenticatedRequest, res: Response): voi
   try {
     const exported = exportUserData(req.userId!);
     res.json({ success: true, data: exported });
-  } catch (error: any) {
-    res.status(404).json({ success: false, error: error.message || 'Export failed' });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Export failed';
+    res.status(404).json({ success: false, error: message });
   }
 }
 
@@ -259,7 +263,8 @@ export async function getPredictiveForecastHandler(req: Request, res: Response):
 export async function getRouteExposureHandler(req: Request, res: Response): Promise<void> {
   try {
     const city = sanitizeString((req.query.city as string) || 'Delhi NCR', 60);
-    const distanceKm = Number(req.query.distanceKm) || 15;
+    const rawDist = Number(req.query.distanceKm);
+    const distanceKm = Number.isFinite(rawDist) ? Math.max(0.5, Math.min(rawDist, 300)) : 15;
     const isVulnerable = req.query.vulnerable === 'true';
     const aqiData = await getCityAQI(city);
     const result = evaluateCommuteRoutes(city, aqiData.pollutants.pm25, distanceKm, isVulnerable);
@@ -271,11 +276,13 @@ export async function getRouteExposureHandler(req: Request, res: Response): Prom
 
 export async function getMultiZoneIAQHandler(req: Request, res: Response): Promise<void> {
   try {
-    const outdoorPM25 = Number(req.query.outdoorPM25) || 195;
+    const rawPM25 = Number(req.query.outdoorPM25);
+    const outdoorPM25 = Number.isFinite(rawPM25) ? Math.max(0, Math.min(rawPM25, 2000)) : 195;
     const kitchenActive = req.query.cooking !== 'false';
     const bedroomPurifier = req.query.bedroomPurifier !== 'false';
     const livingPurifier = req.query.livingPurifier === 'true';
-    const filterHours = Number(req.query.filterHours) || 320;
+    const rawFilterHours = Number(req.query.filterHours);
+    const filterHours = Number.isFinite(rawFilterHours) ? Math.max(0, Math.min(rawFilterHours, 20000)) : 320;
     const result = simulateMultiZoneIAQ(outdoorPM25, kitchenActive, bedroomPurifier, livingPurifier, filterHours);
     res.json({ success: true, data: result });
   } catch (error) {

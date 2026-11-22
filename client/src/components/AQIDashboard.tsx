@@ -43,23 +43,27 @@ export const AQIDashboard: React.FC<AQIDashboardProps> = ({
   const [forecastPoints, setForecastPoints] = useState<HourlyForecastPoint[]>([]);
   const [forecastLoading, setForecastLoading] = useState<boolean>(false);
 
-  // Load 24-hour forecast data for the trend chart
+  // Load 24-hour forecast data for the trend chart with unmount guard
   useEffect(() => {
+    let isMounted = true;
     if (data?.city) {
       setForecastLoading(true);
       fetchPredictiveSmogForecast(data.city)
         .then(res => {
-          if (res && res.forecastPoints) {
+          if (isMounted && res && res.forecastPoints) {
             setForecastPoints(res.forecastPoints);
           }
         })
         .catch(err => {
-          console.warn('Could not load forecast trajectory:', err);
+          if (isMounted) console.warn('Could not load forecast trajectory:', err);
         })
         .finally(() => {
-          setForecastLoading(false);
+          if (isMounted) setForecastLoading(false);
         });
     }
+    return () => {
+      isMounted = false;
+    };
   }, [data?.city]);
 
   if (isLoading || !data) {

@@ -36,8 +36,44 @@ export interface RoutineTimeSlot {
   actionReasoning: string;
 }
 
+export type UserPersona = 'family' | 'student' | 'professional' | 'community';
+export type HouseholdVulnerability = 'infant' | 'child' | 'asthma_respiratory' | 'elderly' | 'pregnant' | 'pet' | 'none';
+export type CommuteMode = 'walking' | 'cycling' | 'motorbike' | 'car_solo' | 'carpool' | 'public_transit' | 'work_from_home';
+export type HeatingSource = 'wood_biomass' | 'coal_chulha' | 'unvented_gas' | 'electric_space_heater' | 'heat_pump' | 'central_steam';
+
+export interface UserLifestyleProfile {
+  persona: UserPersona;
+  city: string;
+  householdMembers: number;
+  vulnerabilities: HouseholdVulnerability[];
+  homeAreaSqFt: number;
+  commuteMode: CommuteMode;
+  commuteDistanceKm: number;
+  heatingSource: HeatingSource;
+  hasAirPurifier: boolean;
+  hasCookingExhaust: boolean;
+  morningOutdoorRoutine: boolean;
+  budgetTier: 'low' | 'moderate' | 'high';
+}
+
+export interface IAQSimulationInput {
+  roomVolumeM3: number;
+  outdoorPM25: number;
+  airChangesPerHour: number;
+  hasAirPurifier: boolean;
+  purifierCADR_M3H: number;
+  indoorSources: {
+    cookingWithGas: boolean;
+    hasExhaustOn: boolean;
+    incenseOrCandles: boolean;
+    drySweeping: boolean;
+    smokingOrVaping: boolean;
+  };
+  simulationDurationMinutes: number;
+}
+
 export interface OptimizedRoutineResponse {
-  profile: any;
+  profile: Partial<UserLifestyleProfile>;
   currentAQI: AQIData;
   timeline: RoutineTimeSlot[];
   impactSummary: {
@@ -212,7 +248,7 @@ export async function fetchCities(): Promise<{ name: string; country: string }[]
   return json.data;
 }
 
-export async function optimizeRoutine(profile: any): Promise<OptimizedRoutineResponse> {
+export async function optimizeRoutine(profile: Partial<UserLifestyleProfile>): Promise<OptimizedRoutineResponse> {
   const res = await fetch(`${API_BASE}/routine/optimize`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -223,7 +259,7 @@ export async function optimizeRoutine(profile: any): Promise<OptimizedRoutineRes
   return json.data;
 }
 
-export async function simulateIAQ(input: any): Promise<IAQSimulationResult> {
+export async function simulateIAQ(input: Partial<IAQSimulationInput>): Promise<IAQSimulationResult> {
   const res = await fetch(`${API_BASE}/iaq/simulate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -234,7 +270,11 @@ export async function simulateIAQ(input: any): Promise<IAQSimulationResult> {
   return json.data;
 }
 
-export async function sendChatMessage(messages: { role: string; content: string }[], profile?: any, currentAQI?: any): Promise<string> {
+export async function sendChatMessage(
+  messages: { role: string; content: string }[],
+  profile?: Partial<UserLifestyleProfile>,
+  currentAQI?: Partial<AQIData>
+): Promise<string> {
   const customKey = getCustomApiKey();
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (customKey) {

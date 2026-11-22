@@ -68,7 +68,13 @@ export async function generateAssistantResponse(
       });
 
       if (restResponse.ok) {
-        const restJson: any = await restResponse.json();
+        const restJson = (await restResponse.json()) as {
+          candidates?: Array<{
+            content?: {
+              parts?: Array<{ text?: string }>;
+            };
+          }>;
+        };
         const candidateText = restJson.candidates?.[0]?.content?.parts?.[0]?.text;
         if (candidateText && candidateText.trim().length > 0) {
           return candidateText.trim();

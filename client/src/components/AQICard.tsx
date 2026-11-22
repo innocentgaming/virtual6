@@ -20,7 +20,7 @@ interface AQICardProps {
   onRefresh?: () => void;
 }
 
-export const AQICard: React.FC<AQICardProps> = ({
+const AQICardComponent: React.FC<AQICardProps> = ({
   data,
   isLoading = false,
   onRefresh
@@ -166,3 +166,5 @@ export const AQICard: React.FC<AQICardProps> = ({
     </div>
   );
 };
+
+export const AQICard = React.memo(AQICardComponent);

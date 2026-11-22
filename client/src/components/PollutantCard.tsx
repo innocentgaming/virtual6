@@ -11,7 +11,7 @@ interface PollutantCardProps {
   sourceType: string;
 }
 
-export const PollutantCard: React.FC<PollutantCardProps> = ({
+const PollutantCardComponent: React.FC<PollutantCardProps> = ({
   name,
   formula,
   value,
@@ -90,3 +90,5 @@ export const PollutantCard: React.FC<PollutantCardProps> = ({
     </div>
   );
 };
+
+export const PollutantCard = React.memo(PollutantCardComponent);

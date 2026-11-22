@@ -1,27 +1,23 @@
 1
-00:00:00,200 --> 00:00:04,900
-What if one platform could help you understand the air you breathe?
+00:00:00,600 --> 00:00:05,200
+Every breath matters. But do you really know what you're breathing?
 
 2
-00:00:05,200 --> 00:00:14,500
-Explore air quality readings and understand important pollution indicators through one intelligent dashboard.
+00:00:07,300 --> 00:00:14,200
+Introducing BreatheSmart AI, an intelligent platform designed to help you understand the air around you.
 
 3
-00:00:15,200 --> 00:00:24,500
-Make better daily decisions with an air-quality-aware routine planning experience.
+00:00:15,300 --> 00:00:24,800
+Explore air quality readings, monitor important pollutants, and understand environmental conditions through one powerful dashboard.
 
 4
-00:00:25,200 --> 00:00:34,500
-Explore indoor air quality with an interactive simulator.
+00:00:27,300 --> 00:00:35,500
+Plan smarter daily routines, explore indoor air quality, and discover practical clean-air solutions.
 
 5
-00:00:35,200 --> 00:00:44,500
-Ask questions and get conversational assistance from the integrated AI assistant.
+00:00:39,300 --> 00:00:46,500
+Get conversational AI assistance and explore a community built around clean-air awareness.
 
 6
-00:00:45,200 --> 00:00:52,500
-Discover practical clean-air guidance and connect with a community focused on awareness.
-
-7
-00:00:53,100 --> 00:00:59,800
-One platform. Smarter air awareness. This is BreatheSmart AI. Explore it today!
+00:00:51,300 --> 00:00:58,800
+Understand the air. Make smarter choices. Protect your health. This is BreatheSmart AI.
