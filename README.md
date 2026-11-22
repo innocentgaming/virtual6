@@ -23,13 +23,11 @@
 
 ---
 
-## 🎬 Official 3-Minute Product Demonstration Video
+## 🎬 Official Demonstration Videos
 
-A comprehensive, production-quality 3-minute product demonstration video is included directly in the repository:
-
+### 1. 3-Minute Product Demonstration Video (16:9 Landscape)
 🎥 **File:** [`breathesmart_demo.mp4`](./breathesmart_demo.mp4) (Full HD 1920×1080 @ 30 FPS, exactly 03:00 / 180 seconds, H.264 / AAC, crisp burned-in subtitles, and neural voiceover)
 
-### Video Structure & Timestamp Guide:
 | Timestamp | Segment | Highlights & Interface Coverage |
 | :---: | :--- | :--- |
 | **0:00 – 0:20** | **Opening — The Problem** | Stagnant winter smog crisis, particulate inhalation hazards, and mission statement: *"Understand the air. Protect your health."* |
@@ -40,6 +38,19 @@ A comprehensive, production-quality 3-minute product demonstration video is incl
 | **2:00 – 2:20** | **DIY Purifier Guide & Customizer** | Parametric Corsi-Rosenthal box builder, fan sizing (20"/24"), pleat depth, exploded 3D blueprint layers, and cardboard shroud aerodynamics. |
 | **2:20 – 2:40** | **AI Copilot & Community Hub** | Asthma emergency protection query with PromptGuard triage, crowdsourced local pollution reports, and community verification upvoting. |
 | **2:40 – 3:00** | **Closing & Call to Action** | System overview summary and web access link: `breathesmart-ai.onrender.com`. |
+
+### 2. 60-Second Vertical Instagram Reel (9:16 Mobile Showcase)
+📱 **File:** [`breathesmart_reel.mp4`](./breathesmart_reel.mp4) (Vertical 1080×1920 @ 30 FPS, exactly 60 seconds, H.264 / AAC, modern startup aesthetic, fast cuts, and burned-in subtitles)
+
+| Timestamp | Reel Scene | Visual & Demonstration Flow |
+| :---: | :--- | :--- |
+| **0:00 – 0:05** | **Hook** | Neon badge *"INTRODUCING BREATHE SMART AI"*, animated logo, and voiceover hook: *"What if one platform could help you understand the air you breathe?"* |
+| **0:05 – 0:15** | **AQI Dashboard** | Real-time Delhi NCR data refresh, live circular AQI gauge, PM2.5 and PM10 cards, and thermal inversion detection alert. |
+| **0:15 – 0:25** | **Routine Planner** | Persona switcher (Family with Children / Student), EPA minute-ventilation dose calculation, and avoided cigarette equivalent metrics. |
+| **0:25 – 0:35** | **IAQ Simulator** | Single-compartment mass-balance physical simulator, interactive CADR slider tuning, and real-time indoor PM2.5 decay timeline. |
+| **0:35 – 0:45** | **AI Assistant** | Real pediatric asthma smog protection inquiry with PromptGuard clinical triage guidance. |
+| **0:45 – 0:53** | **DIY Purifier & Community** | Exploded 3D Corsi-Rosenthal box blueprint, local open-burning pollution reports, and neighborhood upvoting. |
+| **0:53 – 1:00** | **Closing CTA** | High-energy feature montage, animated closing brand card, and live link: `breathesmart-ai.onrender.com`. |
 
 ---
 
