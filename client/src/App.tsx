@@ -10,7 +10,8 @@ import {
   Home, 
   Bot, 
   Users, 
-  ExternalLink 
+  TrendingUp,
+  Info
 } from 'lucide-react';
 import { ResponsiveNavbar } from './components/ResponsiveNavbar';
 import { AQIDashboard } from './components/AQIDashboard';
@@ -25,9 +26,12 @@ import { CommunityHub } from './components/CommunityHub';
 import { NeighborhoodMap } from './components/NeighborhoodMap';
 import { BiomassSmokeTracker } from './components/BiomassSmokeTracker';
 import { HealthPrescriptionCard } from './components/HealthPrescriptionCard';
+import { HealthRecommendation } from './components/HealthRecommendation';
 import { LungDepositionVisualizer } from './components/LungDepositionVisualizer';
 import { PredictiveSmogTimeline } from './components/PredictiveSmogTimeline';
 import { InversionColumn } from './components/InversionColumn';
+import { TrendsAnalyticsView } from './components/TrendsAnalyticsView';
+import { AboutView } from './components/AboutView';
 import { ApiKeyModal } from './components/ApiKeyModal';
 import { TraceabilityModal } from './components/TraceabilityModal';
 import { AuthModal } from './components/AuthModal';
@@ -39,10 +43,12 @@ export type NavTabType =
   | 'dashboard' 
   | 'air-quality' 
   | 'health' 
+  | 'trends'
   | 'routine' 
   | 'indoor-air' 
   | 'ai-assistant' 
-  | 'community';
+  | 'community'
+  | 'about';
 
 export const App: React.FC = () => {
   const [selectedCity, setSelectedCity] = useState<string>('Delhi NCR');
@@ -202,6 +208,12 @@ export const App: React.FC = () => {
                   </span>
                 </div>
 
+                {/* Health Recommendation Matrix */}
+                <HealthRecommendation 
+                  aqi={aqiData.aqi}
+                  safeVentilationHour={aqiData.safeVentilationHours[0]}
+                />
+
                 {/* Printable Clinical Clean Air Prescription Generator */}
                 <HealthPrescriptionCard
                   city={selectedCity}
@@ -214,7 +226,15 @@ export const App: React.FC = () => {
               </div>
             )}
 
-            {/* 4. Routine Planner Tab: Low-Emission Scheduling & Commute Shield */}
+            {/* 4. Trends / Analytics Tab */}
+            {activeTab === 'trends' && aqiData && (
+              <TrendsAnalyticsView
+                city={selectedCity}
+                currentAqi={aqiData.aqi}
+              />
+            )}
+
+            {/* 5. Routine Planner Tab: Low-Emission Scheduling & Commute Shield */}
             {activeTab === 'routine' && (
               <div className="space-y-8 animate-fadeIn">
                 <RoutinePlanner aqiData={aqiData} selectedCity={selectedCity} />
@@ -222,7 +242,7 @@ export const App: React.FC = () => {
               </div>
             )}
 
-            {/* 5. Indoor Air Tab: Mass-Balance Simulator & DIY Purifiers */}
+            {/* 6. Indoor Air Tab: Mass-Balance Simulator & DIY Purifiers */}
             {activeTab === 'indoor-air' && (
               <div className="space-y-8 animate-fadeIn">
                 <IAQSimulator aqiData={aqiData} />
@@ -232,18 +252,26 @@ export const App: React.FC = () => {
               </div>
             )}
 
-            {/* 6. AI Assistant Tab: Dual-Engine Copilot */}
+            {/* 7. AI Assistant Tab: Dual-Engine Copilot */}
             {activeTab === 'ai-assistant' && (
               <div className="animate-fadeIn">
                 <ChatAssistant aqiData={aqiData} selectedCity={selectedCity} />
               </div>
             )}
 
-            {/* 7. Community Tab: Smog Defense & Transition Hub */}
+            {/* 8. Community Tab: Smog Defense & Transition Hub */}
             {activeTab === 'community' && (
               <div className="animate-fadeIn">
                 <CommunityHub />
               </div>
+            )}
+
+            {/* 9. About Tab: Scientific Foundation & Provenance */}
+            {activeTab === 'about' && (
+              <AboutView
+                onOpenTraceabilityModal={() => setIsTraceabilityOpen(true)}
+                onOpenKeyModal={() => setIsKeyModalOpen(true)}
+              />
             )}
           </>
         )}

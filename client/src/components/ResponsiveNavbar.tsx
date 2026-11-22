@@ -19,7 +19,9 @@ import {
   Calendar,
   Home,
   Bot,
-  Users
+  Users,
+  Info,
+  TrendingUp
 } from 'lucide-react';
 import { AQIData, UserSession } from '../services/api';
 import { toggleSound, getSoundEnabled, playTactileClick, toggleAmbientSoundscape, getAmbientPlaying } from './AudioEffects';
@@ -33,12 +35,14 @@ export interface NavTabItem {
 
 export const NAV_TABS: NavTabItem[] = [
   { id: 'dashboard', label: 'Dashboard', shortLabel: 'Overview', icon: Activity },
-  { id: 'air-quality', label: 'Air Quality', shortLabel: 'Telemetry', icon: Layers },
-  { id: 'health', label: 'Health Insights', shortLabel: 'Clinical', icon: HeartPulse },
+  { id: 'air-quality', label: 'Air Quality', shortLabel: 'Sensors', icon: Layers },
+  { id: 'health', label: 'Health Insights', shortLabel: 'Health', icon: HeartPulse },
+  { id: 'trends', label: 'Trends / Analytics', shortLabel: 'Trends', icon: TrendingUp },
   { id: 'routine', label: 'Routine Planner', shortLabel: 'Planner', icon: Calendar },
   { id: 'indoor-air', label: 'Indoor Air', shortLabel: 'IAQ & DIY', icon: Home },
-  { id: 'ai-assistant', label: 'AI Assistant', shortLabel: 'Copilot', icon: Bot },
-  { id: 'community', label: 'Community', shortLabel: 'Action', icon: Users },
+  { id: 'ai-assistant', label: 'AI Copilot', shortLabel: 'AI', icon: Bot },
+  { id: 'community', label: 'Community', shortLabel: 'Hub', icon: Users },
+  { id: 'about', label: 'About', shortLabel: 'About', icon: Info }
 ];
 
 export const CITIES = [
