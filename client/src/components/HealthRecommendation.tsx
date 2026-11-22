@@ -121,7 +121,7 @@ export const HealthRecommendation: React.FC<HealthRecommendationProps> = ({
   const guidance = getGuidance(aqi);
 
   return (
-    <div className="card-premium p-6 space-y-6">
+    <div className="card-premium p-5 sm:p-6 space-y-6 min-w-0 w-full">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3.5 border-b border-slate-100 dark:border-slate-800 gap-2">
         <div className="flex items-center gap-2">
@@ -148,7 +148,7 @@ export const HealthRecommendation: React.FC<HealthRecommendationProps> = ({
       </div>
 
       {/* 4 Health Impact Pillars */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 min-w-0 w-full">
         {/* 1. General Impact */}
         <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-2">
           <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200">

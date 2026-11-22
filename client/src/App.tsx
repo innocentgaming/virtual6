@@ -104,7 +104,7 @@ export const App: React.FC = () => {
   }, [selectedCity]);
 
   return (
-    <div className="min-h-screen bg-ambient-canvas text-slate-900 dark:text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-white transition-colors duration-200">
+    <div className="min-h-screen w-full overflow-x-hidden bg-ambient-canvas text-slate-900 dark:text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-white transition-colors duration-200">
       {/* Skip to Main Content Link for Keyboard Accessibility (WCAG 2.2 AA) */}
       <a 
         href="#main-content" 
@@ -131,7 +131,7 @@ export const App: React.FC = () => {
       />
 
       {/* Main Content Area */}
-      <main id="main-content" className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8" tabIndex={-1}>
+      <main id="main-content" className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 min-w-0" tabIndex={-1}>
         {hasError ? (
           <ErrorState
             message={errorMessage}

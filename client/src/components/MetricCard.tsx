@@ -61,22 +61,22 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   };
 
   return (
-    <div className={`card-premium p-5 flex flex-col justify-between hover:border-slate-300 dark:hover:border-slate-700 transition duration-200 ${className}`}>
+    <div className={`card-premium p-4 sm:p-5 flex flex-col justify-between hover:border-slate-300 dark:hover:border-slate-700 transition duration-200 min-w-0 w-full ${className}`}>
       <div>
         {/* Header row */}
-        <div className="flex items-start justify-between gap-2 mb-2">
-          <div className="flex items-center gap-2">
+        <div className="flex items-start justify-between gap-2 mb-2 flex-wrap">
+          <div className="flex items-center gap-2 min-w-0">
             {Icon && (
               <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 shrink-0">
                 <Icon className="w-4 h-4" />
               </div>
             )}
-            <div>
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
+            <div className="min-w-0">
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block truncate">
                 {title}
               </span>
               {symbol && (
-                <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500">
+                <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500 block truncate">
                   {symbol}
                 </span>
               )}
@@ -84,14 +84,14 @@ export const MetricCard: React.FC<MetricCardProps> = ({
           </div>
 
           {badge && (
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getBadgeClass()}`}>
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${getBadgeClass()}`}>
               {badge}
             </span>
           )}
         </div>
 
         {/* Big value display */}
-        <div className="my-2.5 flex items-baseline gap-1.5">
+        <div className="my-2.5 flex items-baseline gap-1.5 flex-wrap">
           <span className="text-3xl font-bold font-display tracking-tight text-slate-900 dark:text-slate-100">
             {value !== undefined && value !== null ? value : '—'}
           </span>

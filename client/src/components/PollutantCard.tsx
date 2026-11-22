@@ -35,7 +35,7 @@ export const PollutantCard: React.FC<PollutantCardProps> = ({
   const barPercent = Math.min((value / (safeThreshold * 2)) * 100, 100);
 
   return (
-    <div className="card-premium p-4 flex flex-col justify-between hover:border-slate-300 dark:hover:border-slate-700 transition duration-200">
+    <div className="card-premium p-4 flex flex-col justify-between hover:border-slate-300 dark:hover:border-slate-700 transition duration-200 min-w-0 w-full">
       <div>
         <div className="flex items-start justify-between">
           <div>

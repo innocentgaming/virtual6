@@ -80,7 +80,7 @@ export const AQIDashboard: React.FC<AQIDashboardProps> = ({
   };
 
   return (
-    <div className="space-y-6 sm:space-y-8 animate-fadeIn">
+    <div className="w-full min-w-0 space-y-6 sm:space-y-8 animate-fadeIn">
       {/* 1. Meteorological Thermal Inversion Alert Banner */}
       <InversionAlert
         isInversionLikely={data.isInversionLikely}
@@ -92,9 +92,9 @@ export const AQIDashboard: React.FC<AQIDashboardProps> = ({
       />
 
       {/* 2. Executive Hero Grid: AQI Centerpiece + Key Telemetry */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-stretch w-full min-w-0">
         {/* Centerpiece AQICard (5 Cols) */}
-        <div className="lg:col-span-5 flex flex-col">
+        <div className="lg:col-span-5 flex flex-col min-w-0 w-full">
           <AQICard
             data={data}
             isLoading={isLoading}
@@ -103,8 +103,8 @@ export const AQIDashboard: React.FC<AQIDashboardProps> = ({
         </div>
 
         {/* Right 7 Cols: Primary Metric Cards Grid */}
-        <div className="lg:col-span-7 flex flex-col justify-between space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="lg:col-span-7 flex flex-col justify-between gap-4 min-w-0 w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 min-w-0 w-full">
             {/* PM2.5 Card */}
             <MetricCard
               title="Fine Particulates"
@@ -197,7 +197,7 @@ export const AQIDashboard: React.FC<AQIDashboardProps> = ({
       />
 
       {/* 4. Chemical Spectrometry Grid: NO2, CO, SO2, O3 Gas Breakdown */}
-      <div className="space-y-3">
+      <div className="space-y-3 w-full min-w-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Gauge className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
@@ -210,7 +210,7 @@ export const AQIDashboard: React.FC<AQIDashboardProps> = ({
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full min-w-0">
           <PollutantCard
             name="Nitrogen Dioxide"
             formula="NO₂"

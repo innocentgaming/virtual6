@@ -194,7 +194,7 @@ export const AtmosphericCanvas: React.FC<AtmosphericCanvasProps> = ({ aqi, isInv
   };
 
   return (
-    <div className="relative w-full h-[240px] md:h-[290px] rounded-2xl overflow-hidden border border-white/10 bg-[#090c10] shadow-2xl">
+    <div className="relative w-full h-[240px] md:h-[290px] rounded-2xl overflow-hidden border border-white/10 bg-[#090c10] shadow-2xl min-w-0">
       {/* Background Micro-Grid */}
       <div 
         className="absolute inset-0 opacity-[0.14] pointer-events-none"

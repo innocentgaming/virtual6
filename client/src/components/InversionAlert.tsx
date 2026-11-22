@@ -24,16 +24,16 @@ export const InversionAlert: React.FC<InversionAlertProps> = ({
     <div
       role="alert"
       aria-labelledby="inversion-banner-title"
-      className="p-5 sm:p-6 rounded-2xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/90 dark:border-amber-800/60 shadow-xs relative overflow-hidden"
+      className="w-full rounded-2xl p-4 sm:p-5 lg:p-6 bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/90 dark:border-amber-800/60 shadow-xs relative overflow-hidden min-w-0"
     >
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 w-full min-w-0">
         {/* Left column: Warning & Details */}
-        <div className="flex items-start gap-3.5">
+        <div className="flex items-start gap-3.5 min-w-0 flex-1">
           <div className="p-2.5 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 shrink-0 mt-0.5">
             <CloudFog className="w-6 h-6 animate-pulse" aria-hidden="true" />
           </div>
 
-          <div className="space-y-1">
+          <div className="space-y-1 min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200 text-[10px] font-bold uppercase tracking-wider border border-amber-300 dark:border-amber-700">
                 Atmospheric Inversion
@@ -48,7 +48,7 @@ export const InversionAlert: React.FC<InversionAlertProps> = ({
             </p>
 
             {(temperature !== undefined || windSpeed !== undefined || humidity !== undefined) && (
-              <div className="flex items-center gap-3 text-[11px] font-mono text-amber-800/70 dark:text-amber-300/70 pt-1">
+              <div className="flex items-center gap-3 text-[11px] font-mono text-amber-800/70 dark:text-amber-300/70 pt-1 flex-wrap">
                 {temperature !== undefined && <span>Temp: {temperature}°C</span>}
                 {windSpeed !== undefined && <span>Wind: {windSpeed} km/h (Stagnant)</span>}
                 {humidity !== undefined && <span>Humidity: {humidity}%</span>}
@@ -58,7 +58,7 @@ export const InversionAlert: React.FC<InversionAlertProps> = ({
         </div>
 
         {/* Right column: Solar mixing window */}
-        <div className="p-3.5 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-amber-200/80 dark:border-amber-800/60 shadow-xs shrink-0 self-stretch md:self-auto min-w-[210px] flex flex-col justify-between">
+        <div className="w-full lg:w-auto lg:min-w-[220px] p-3.5 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-amber-200/80 dark:border-amber-800/60 shadow-xs shrink-0 flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-400">
               <Sun className="w-3.5 h-3.5" />

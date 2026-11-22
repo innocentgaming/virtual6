@@ -82,7 +82,7 @@ export const AQICard: React.FC<AQICardProps> = ({
   const category = getCategoryDetails(data.aqi);
 
   return (
-    <div className="card-premium p-6 flex flex-col justify-between relative overflow-hidden bg-white dark:bg-slate-900">
+    <div className="card-premium p-5 sm:p-6 flex flex-col justify-between relative overflow-hidden bg-white dark:bg-slate-900 h-full w-full min-w-0">
       <div>
         {/* Top telemetry status bar */}
         <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-slate-800">
