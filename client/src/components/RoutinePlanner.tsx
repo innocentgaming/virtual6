@@ -20,6 +20,7 @@ import {
 import { AQIData, optimizeRoutine, OptimizedRoutineResponse } from '../services/api';
 import { playTactileClick } from './AudioEffects';
 import { RouteExposureOptimizer } from './RouteExposureOptimizer';
+import { HealthPrescriptionCard } from './HealthPrescriptionCard';
 
 interface RoutinePlannerProps {
   aqiData: AQIData | null;
@@ -483,6 +484,13 @@ export const RoutinePlanner: React.FC<RoutinePlannerProps> = ({ aqiData, selecte
 
       {/* Urban Commute Shield & Route Exposure Optimizer */}
       <RouteExposureOptimizer city={selectedCity} />
+
+      {/* Personalized Clinical Action Prescription Card */}
+      <HealthPrescriptionCard 
+        city={selectedCity} 
+        currentAqi={aqiData?.aqi || 280} 
+        currentPm25={aqiData?.pollutants.pm25 || 185} 
+      />
 
       {/* Primary Health Recommendations */}
       {routineData && routineData.impactSummary.primaryHealthRecommendations.length > 0 && (

@@ -273,6 +273,25 @@ BreatheSmart AI features three institutional-grade advanced systems engineered t
   $$\Delta P = \Delta P_0 \left(1 + 1.6 \frac{M_{loaded}}{M_{capacity}}\right)$$
 - **Prognostic Lifetime Countdown**: Real-time calculation of fiber pore occlusion percentage (0-100%), airflow degradation ($\text{CFM}$ loss), and remaining operational days before replacement is required.
 
+### 4. Urban Spatial GIS Micro-Sensor Grid & Clean Air Refuge Radar
+- **Hyperlocal Sensor Network**: Real-time monitoring across 6 distinct microclimatic zones (Expressway Junction, Industrial Corridor, Sector 4 Residential, School District, Botanical Sanctuary, and Municipal Clean Air Shelter).
+- **Proximity & Exposure Calculation**: Dynamic distance-weighted calculation displaying live $PM_{2.5}$ concentration, wind vector offsets, and direct directions to certified clean air shelters.
+
+### 5. Biomass Smoke Satellite Thermal Anomaly & Plume Tracer
+- **Thermal Hotspot Aggregation**: Visualizes regional thermal anomalies (MODIS/VIIRS thermal fire detections) coupled with dynamic wind speed and direction vector controls.
+- **Plume Transit Lag & Chemical Mass Balance**: Calculates downwind transport delay (transit lag in hours) and real-time source apportionment: Agricultural Crop Residue (48%), Vehicular Diesel Exhaust (24%), Industrial Point Sources (18%), and Household Cooking/Dust (10%).
+
+### 6. Clinical Clean Air Prescription Generator (CE-Aligned)
+- **Vulnerability Stratification**: Instant personalized clinical care sheets for Pediatric (0-12 yrs), Asthma / Chronic Respiratory, Senior / Cardiovascular, and Adult Commuter demographics.
+- **Prescription Specification**: Recommends exact respirator types (e.g., FFP2 / N95 / KF94 vs surgical masks), hourly outdoor cutoffs, indoor HEPA target CADR, saline nasal lavage frequency, and emergency warning triggers with printable clinical export.
+
+### 7. Parametric DIY Air Purifier Sizing Calculator
+- **Custom Dimension & Filter Media Modeling**: Real-time aerodynamic engineering calculator supporting 16", 20", and 24" box fans, 1", 2", and 4" MERV 13 pleats, and 4-cube, 5-cube, or 2-wedge geometries.
+- **Aerodynamic Backpressure & Effective Media Area**: Computes total filter surface area ($ft^2$), face velocity, motor backpressure risk ($in.\ H_2O$), true delivered CADR CFM, and exact bill of materials.
+
+### 8. Clean-Air Procedural Ambient Soundscape
+- **Audio Synthesis**: Built-in procedural brown noise generator via the HTML5 Web Audio API, synthesizing low-frequency acoustic masking to promote focus, lower stress during smog confinement, and simulate air purification airflow.
+
 ---
 
 ---

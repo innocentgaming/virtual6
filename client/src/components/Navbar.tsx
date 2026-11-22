@@ -10,10 +10,11 @@ import {
   User,
   Volume2,
   VolumeX,
-  Radio
+  Radio,
+  Sparkles
 } from 'lucide-react';
 import { AQIData, UserSession } from '../services/api';
-import { toggleSound, getSoundEnabled, playTactileClick } from './AudioEffects';
+import { toggleSound, getSoundEnabled, playTactileClick, toggleAmbientSoundscape, getAmbientPlaying } from './AudioEffects';
 
 interface NavbarProps {
   aqiData: AQIData | null;
@@ -51,6 +52,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   isLoading
 }) => {
   const [soundOn, setSoundOn] = useState<boolean>(getSoundEnabled());
+  const [ambientOn, setAmbientOn] = useState<boolean>(getAmbientPlaying());
 
   const handleSoundToggle = () => {
     const nextState = toggleSound();
@@ -58,6 +60,12 @@ export const Navbar: React.FC<NavbarProps> = ({
     if (nextState) {
       playTactileClick(900, 0.05);
     }
+  };
+
+  const handleAmbientToggle = () => {
+    const nextState = toggleAmbientSoundscape();
+    setAmbientOn(nextState);
+    playTactileClick(nextState ? 800 : 500, 0.03);
   };
 
   const getBadgeColor = (level: string = '') => {
@@ -173,6 +181,20 @@ export const Navbar: React.FC<NavbarProps> = ({
             title={soundOn ? 'Tactile Audio Feedback: ON' : 'Tactile Audio Feedback: MUTED'}
           >
             {soundOn ? <Volume2 className="w-3.5 h-3.5 text-emerald-400" /> : <VolumeX className="w-3.5 h-3.5 text-slate-500" />}
+          </button>
+
+          {/* Ambient Clean Air Soundscape Generator */}
+          <button
+            onClick={handleAmbientToggle}
+            aria-label="Toggle procedural clean air brown noise soundscape"
+            className={`p-2 rounded-xl border transition min-h-[38px] min-w-[38px] flex items-center justify-center ${
+              ambientOn 
+                ? 'bg-teal-950/80 border-teal-500/60 text-teal-300 animate-pulse' 
+                : 'bg-slate-950/80 border-white/10 text-slate-400 hover:text-slate-200'
+            }`}
+            title={ambientOn ? 'Ambient Clean Air Brown Noise: ACTIVE' : 'Indoor Brown Noise Masking: OFF'}
+          >
+            <Sparkles className={`w-3.5 h-3.5 ${ambientOn ? 'text-teal-400' : 'text-slate-500'}`} />
           </button>
 
           {/* Traceability Matrix Button */}

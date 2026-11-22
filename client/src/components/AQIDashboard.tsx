@@ -20,6 +20,8 @@ import { AtmosphericCanvas } from './AtmosphericCanvas';
 import { InversionColumn } from './InversionColumn';
 import { LungDepositionVisualizer } from './LungDepositionVisualizer';
 import { PredictiveSmogTimeline } from './PredictiveSmogTimeline';
+import { NeighborhoodMap } from './NeighborhoodMap';
+import { BiomassSmokeTracker } from './BiomassSmokeTracker';
 
 interface AQIDashboardProps {
   data: AQIData | null;
@@ -322,7 +324,20 @@ export const AQIDashboard: React.FC<AQIDashboardProps> = ({ data, isLoading }) =
         city={data.city} 
       />
 
-      {/* 6. Human Respiratory Particulate Deposition Simulator */}
+      {/* 6. Hyper-Local Spatial Sensor Grid & Clean Air Refuge Locator */}
+      <NeighborhoodMap 
+        city={data.city} 
+        baseAqi={data.aqi} 
+        basePm25={data.pollutants.pm25} 
+      />
+
+      {/* 7. Satellite Fire Thermal Anomaly & Plume Tracer */}
+      <BiomassSmokeTracker 
+        city={data.city} 
+        ambientPM25={data.pollutants.pm25} 
+      />
+
+      {/* 8. Human Respiratory Particulate Deposition Simulator */}
       <LungDepositionVisualizer 
         pm25={data.pollutants.pm25} 
       />

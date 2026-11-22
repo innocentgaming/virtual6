@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Layers, ShieldCheck, DollarSign, Wind, Volume2, Cpu, Wrench, CheckCircle } from 'lucide-react';
 import { playTactileClick } from './AudioEffects';
+import { CorsiRosenthalCustomizer } from './CorsiRosenthalCustomizer';
 
 export const CorsiRosenthalBlueprint: React.FC = () => {
   const [activeComponent, setActiveComponent] = useState<number>(0);
@@ -201,6 +202,9 @@ export const CorsiRosenthalBlueprint: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Parametric Custom Dimensions Calculator */}
+      <CorsiRosenthalCustomizer />
     </div>
   );
 };
