@@ -109,142 +109,131 @@ export const NeighborhoodMap: React.FC<NeighborhoodMapProps> = ({ city, baseAqi,
 
   const getNodeColor = (type: NeighborhoodNode['zoneType']) => {
     switch (type) {
-      case 'industrial': return 'border-red-500/60 bg-red-950/40 text-red-400';
-      case 'highway': return 'border-orange-500/60 bg-orange-950/40 text-orange-400';
-      case 'dense_urban': return 'border-amber-500/60 bg-amber-950/40 text-amber-400';
-      case 'school': return 'border-blue-500/60 bg-blue-950/40 text-blue-400';
-      case 'green_lung': return 'border-teal-500/60 bg-teal-950/40 text-teal-400';
-      case 'clean_shelter': return 'border-emerald-500/80 bg-emerald-950/50 text-emerald-300';
+      case 'industrial': return 'border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400';
+      case 'highway': return 'border-orange-300 dark:border-orange-800 bg-orange-50 dark:bg-orange-950/40 text-orange-700 dark:text-orange-400';
+      case 'dense_urban': return 'border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400';
+      case 'school': return 'border-blue-300 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400';
+      case 'green_lung': return 'border-teal-300 dark:border-teal-800 bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-400';
+      case 'clean_shelter': return 'border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300';
     }
   };
 
   const getAqiBadgeColor = (aqi: number) => {
-    if (aqi <= 50) return 'bg-emerald-950/80 text-emerald-300 border-emerald-500/50';
-    if (aqi <= 100) return 'bg-amber-950/80 text-amber-300 border-amber-500/50';
-    if (aqi <= 200) return 'bg-orange-950/80 text-orange-300 border-orange-500/50';
-    if (aqi <= 300) return 'bg-rose-950/80 text-rose-300 border-rose-500/50';
-    return 'bg-red-950/90 text-red-200 border-red-500/70';
+    if (aqi <= 50) return 'bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border-emerald-700';
+    if (aqi <= 100) return 'bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/80 dark:text-amber-300 dark:border-amber-700';
+    if (aqi <= 200) return 'bg-orange-50 text-orange-800 border-orange-300 dark:bg-orange-950/80 dark:text-orange-300 dark:border-orange-700';
+    if (aqi <= 300) return 'bg-rose-50 text-rose-800 border-rose-300 dark:bg-rose-950/80 dark:text-rose-300 dark:border-rose-700';
+    return 'bg-red-50 text-red-900 border-red-300 dark:bg-red-950/90 dark:text-red-200 dark:border-red-700';
   };
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-[#090c10] p-6 shadow-2xl space-y-6">
+    <div className="card-premium p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
         <div>
           <div className="flex items-center gap-2">
-            <Compass className="w-4 h-4 text-emerald-400" />
-            <h3 className="text-sm font-mono uppercase tracking-wider font-bold text-white">
+            <Compass className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <h3 className="text-sm font-bold font-display text-slate-900 dark:text-slate-100">
               Hyper-Local Spatial Sensor Grid & Clean Air Refuge Locator
             </h3>
           </div>
-          <p className="text-xs text-slate-400 mt-1 font-sans">
-            Captures real urban microclimate gradients from industrial hotspots down to certified public clean air shelters.
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-sans">
+            Real-time urban microclimate variance across 6 neighborhood micro-sensor nodes for {city}.
           </p>
         </div>
 
-        {/* Shelter Quick Pill */}
-        <div className="p-2.5 rounded-xl bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 font-mono text-xs self-start sm:self-auto flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-          <span>Nearest Shelter: <strong>1.2 km away ({nodes[5].pm25} µg/m³)</strong></span>
+        <div className="flex items-center gap-2 text-xs font-mono text-slate-500 dark:text-slate-400">
+          <Radio className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 animate-pulse" />
+          <span>Active GIS Microgrid (6 Nodes)</span>
         </div>
       </div>
 
-      {/* Spatial Sensor Node Map Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        {nodes.map((node) => {
-          const isSelected = selectedNodeId === node.id;
+      {/* Grid of Micro-Sensor Locations */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {nodes.map(node => {
+          const isSelected = node.id === selectedNodeId;
           const nodeAqi = Math.round(baseAqi * node.aqiMultiplier);
-
           return (
             <button
               key={node.id}
               onClick={() => {
-                playTactileClick(750, 0.02);
+                playTactileClick(700, 0.02);
                 setSelectedNodeId(node.id);
               }}
-              className={`p-4 rounded-xl border text-left transition flex flex-col justify-between space-y-3 relative ${
+              className={`p-3.5 rounded-xl border text-left transition-all duration-200 flex flex-col justify-between min-h-[110px] ${
                 isSelected
-                  ? 'bg-slate-900 border-emerald-500/80 shadow-xl'
-                  : 'bg-slate-950/70 border-white/5 hover:border-white/20'
+                  ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/30 shadow-xs'
+                  : 'border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-900'
               }`}
             >
-              {node.isShelter && (
-                <span className="absolute -top-2 right-3 text-[9px] font-mono uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-600 text-white border border-emerald-400 shadow">
-                  Clean Air Shelter
-                </span>
-              )}
-
               <div>
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-white truncate">
-                    <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                    <span className="truncate">{node.name.split(' ')[0]} {node.name.split(' ')[1]}</span>
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <div className="flex items-center gap-1.5">
+                    {node.isShelter ? (
+                      <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    ) : (
+                      <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                    )}
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-100 line-clamp-1 font-display">
+                      {node.name}
+                    </span>
                   </div>
-                  <span className="text-[10px] font-mono text-slate-400 shrink-0">
-                    {node.relativeDistanceKm} km
+                  <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border shrink-0 ${getAqiBadgeColor(nodeAqi)}`}>
+                    AQI {nodeAqi}
                   </span>
                 </div>
 
-                <div className="flex items-baseline gap-2 mt-1">
-                  <span className="text-2xl font-black font-mono" style={{
-                    color: nodeAqi <= 50 ? '#10b981' : nodeAqi <= 200 ? '#f59e0b' : '#ef4444'
-                  }}>
-                    AQI {nodeAqi}
-                  </span>
-                  <span className="text-xs font-mono text-slate-400">
-                    ({node.pm25} µg/m³)
-                  </span>
+                <div className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 font-sans">
+                  {node.dominantSource}
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-white/[0.06] text-[11px] font-mono text-slate-400 truncate">
-                Source: {node.dominantSource.split(',')[0]}
+              <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800 mt-2">
+                <span>Distance: {node.relativeDistanceKm} km</span>
+                <span className={node.isShelter ? 'text-emerald-600 dark:text-emerald-400 font-bold' : ''}>
+                  PM2.5: {node.pm25} µg/m³
+                </span>
               </div>
             </button>
           );
         })}
       </div>
 
-      {/* Selected Microclimate Node Deep-Dive */}
-      <div className="bg-slate-950/80 p-5 rounded-xl border border-white/10 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-white/[0.08] gap-2">
-          <div className="flex items-center gap-2">
-            <Radio className="w-4 h-4 text-emerald-400 animate-pulse" />
-            <h4 className="text-sm font-mono font-bold text-white">
-              Telemetry Profile: {selectedNode.name}
-            </h4>
+      {/* Selected Node Detailed Inspection Panel */}
+      <div className="p-4 sm:p-5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="space-y-1 max-w-xl">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs font-bold text-slate-900 dark:text-slate-100 font-display">
+              {selectedNode.name}
+            </span>
+            <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${getNodeColor(selectedNode.zoneType)}`}>
+              {selectedNode.isShelter ? 'DESIGNATED CLEAN AIR REFUGE' : 'MONITORING NODE'}
+            </span>
+            <span className="text-[11px] font-mono text-slate-500">
+              {selectedNode.relativeDistanceKm} km from your registered coordinates
+            </span>
           </div>
-          <span className={`text-xs font-mono font-bold px-2.5 py-1 rounded-lg border ${getAqiBadgeColor(selectedAqi)}`}>
-            Microclimate AQI {selectedAqi} ({selectedNode.pm25} µg/m³ PM2.5)
-          </span>
+
+          <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-sans">
+            {selectedNode.description}
+          </p>
+
+          <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400 pt-1">
+            Dominant Contaminant: <strong>{selectedNode.dominantSource}</strong>
+          </div>
         </div>
 
-        <p className="text-xs text-slate-300 font-sans leading-relaxed">
-          {selectedNode.description}
-        </p>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 font-mono text-xs">
-          <div className="p-3 rounded-lg bg-slate-900/80 border border-white/5">
-            <span className="text-[10px] uppercase text-slate-400 block">Distance from User</span>
-            <span className="text-base font-bold text-white mt-0.5 block">{selectedNode.relativeDistanceKm} km away</span>
-            <span className="text-[10px] text-slate-500">~{Math.round(selectedNode.relativeDistanceKm * 12)} min transit</span>
+        {/* Readout Pill & Directions */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-3.5 min-w-[200px] shrink-0 self-stretch md:self-auto text-center shadow-xs">
+          <span className="text-[10px] font-mono uppercase text-slate-400 block tracking-wider">
+            Microclimate Inhalation Dose
+          </span>
+          <div className="text-2xl font-black font-display text-slate-900 dark:text-slate-100 my-0.5">
+            {selectedNode.pm25} <span className="text-xs font-normal text-slate-500">µg/m³</span>
           </div>
-
-          <div className="p-3 rounded-lg bg-slate-900/80 border border-white/5">
-            <span className="text-[10px] uppercase text-slate-400 block">Dominant Particulate Emitter</span>
-            <span className="text-xs font-bold text-slate-200 mt-0.5 block truncate">{selectedNode.dominantSource}</span>
-            <span className="text-[10px] text-slate-500">Primary localized vector</span>
-          </div>
-
-          <div className="p-3 rounded-lg bg-slate-900/80 border border-white/5">
-            <span className="text-[10px] uppercase text-slate-400 block">Refuge Classification</span>
-            <span className={`text-xs font-bold mt-0.5 block ${selectedNode.isShelter ? 'text-emerald-400' : 'text-amber-400'}`}>
-              {selectedNode.isShelter ? '✓ Certified Clean Air Sanctuary' : 'Unfiltered Ambient Sector'}
-            </span>
-            <span className="text-[10px] text-slate-500">
-              {selectedNode.isShelter ? 'Free public admission' : 'Respirator advised'}
-            </span>
-          </div>
+          <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 block">
+            {selectedNode.isShelter ? '92% Inhaled Dose Elimination' : `${selectedNode.aqiMultiplier}× Urban Baseline`}
+          </span>
         </div>
       </div>
     </div>

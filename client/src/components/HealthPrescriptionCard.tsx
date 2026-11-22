@@ -73,17 +73,17 @@ export const HealthPrescriptionCard: React.FC<HealthPrescriptionCardProps> = ({
   };
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-[#090c10] p-6 shadow-2xl space-y-6">
+    <div className="card-premium p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
         <div>
           <div className="flex items-center gap-2">
-            <Heart className="w-4 h-4 text-emerald-400" />
-            <h3 className="text-sm font-mono uppercase tracking-wider font-bold text-white">
+            <Heart className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <h3 className="text-sm font-bold font-display text-slate-900 dark:text-slate-100">
               Personalized Clinical Clean Air Action Prescription
             </h3>
           </div>
-          <p className="text-xs text-slate-400 mt-1 font-sans">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-sans">
             Medical-grade household mitigation plan exportable for schools, pediatricians, and workplaces.
           </p>
         </div>
@@ -91,7 +91,7 @@ export const HealthPrescriptionCard: React.FC<HealthPrescriptionCardProps> = ({
         {/* Print / Export Button */}
         <button
           onClick={handlePrint}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs font-bold transition shadow-lg shadow-emerald-950/60 self-start sm:self-auto"
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition shadow-xs self-start sm:self-auto active:scale-95"
         >
           <Printer className="w-3.5 h-3.5" />
           <span>Print / Export PDF Action Card</span>
@@ -115,10 +115,10 @@ export const HealthPrescriptionCard: React.FC<HealthPrescriptionCardProps> = ({
                 playTactileClick(750, 0.02);
                 setPatientType(p.id);
               }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition border ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition border min-h-[38px] ${
                 isActive
-                  ? 'bg-emerald-600 text-white border-emerald-400 shadow-lg'
-                  : 'bg-slate-950/80 text-slate-400 border-white/10 hover:text-white'
+                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                  : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-750'
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
@@ -129,55 +129,59 @@ export const HealthPrescriptionCard: React.FC<HealthPrescriptionCardProps> = ({
       </div>
 
       {/* Printable Clinical Sheet Display */}
-      <div className="bg-slate-950/90 p-6 rounded-2xl border border-white/10 space-y-4 print:bg-white print:text-black">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-white/[0.08] gap-2">
+      <div className="bg-slate-50 dark:bg-slate-850 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4 print:bg-white print:text-black">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-700/80 gap-2">
           <div>
-            <span className="text-[10px] font-mono uppercase tracking-widest text-emerald-400 block font-bold">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-emerald-600 dark:text-emerald-400 block font-bold">
               OFFICIAL CLINICAL PROTOCOL
             </span>
-            <h4 className="text-base font-mono font-bold text-white mt-0.5">
+            <h4 className="text-base font-bold font-display text-slate-900 dark:text-white mt-0.5">
               {selected.title}
             </h4>
           </div>
 
-          <div className="text-right font-mono text-xs text-slate-400">
-            <span>Location: <strong className="text-white">{city}</strong></span>
+          <div className="text-right font-mono text-xs text-slate-500 dark:text-slate-400">
+            <span>Location: <strong className="text-slate-800 dark:text-slate-200">{city}</strong></span>
             <span className="block text-[11px]">Current Exposure: AQI {currentAqi} ({currentPm25} µg/m³)</span>
           </div>
         </div>
 
         {/* 4 Prescription Blocks */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-sans">
-          <div className="p-3.5 rounded-xl bg-slate-900/80 border border-white/5 space-y-1">
-            <span className="font-mono font-bold text-[11px] uppercase tracking-wider text-emerald-400 block">
-              1. Respiratory Mask Specification
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 text-xs font-sans">
+          <div className="p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 space-y-1.5 shadow-2xs">
+            <span className="font-semibold text-xs text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+              <CheckCircle className="w-3.5 h-3.5" />
+              <span>1. Respiratory Mask Specification</span>
             </span>
-            <p className="text-slate-300 leading-relaxed">{selected.maskProtocol}</p>
+            <p className="text-slate-600 dark:text-slate-300 leading-relaxed">{selected.maskProtocol}</p>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-slate-900/80 border border-white/5 space-y-1">
-            <span className="font-mono font-bold text-[11px] uppercase tracking-wider text-cyan-400 block">
-              2. Transit & Activity Restrictions
+          <div className="p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 space-y-1.5 shadow-2xs">
+            <span className="font-semibold text-xs text-sky-700 dark:text-sky-400 flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5" />
+              <span>2. Transit & Activity Restrictions</span>
             </span>
-            <p className="text-slate-300 leading-relaxed">{selected.schoolProtocol}</p>
+            <p className="text-slate-600 dark:text-slate-300 leading-relaxed">{selected.schoolProtocol}</p>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-slate-900/80 border border-white/5 space-y-1">
-            <span className="font-mono font-bold text-[11px] uppercase tracking-wider text-amber-400 block">
-              3. Indoor Clean Air Sanctuary Target
+          <div className="p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 space-y-1.5 shadow-2xs">
+            <span className="font-semibold text-xs text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>3. Indoor Clean Air Sanctuary Target</span>
             </span>
-            <p className="text-slate-300 leading-relaxed">{selected.bedroomTarget}</p>
+            <p className="text-slate-600 dark:text-slate-300 leading-relaxed">{selected.bedroomTarget}</p>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-slate-900/80 border border-white/5 space-y-1">
-            <span className="font-mono font-bold text-[11px] uppercase tracking-wider text-rose-400 block">
-              4. Clinical Management & Emergency Triage
+          <div className="p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 space-y-1.5 shadow-2xs">
+            <span className="font-semibold text-xs text-rose-700 dark:text-rose-400 flex items-center gap-1.5">
+              <Activity className="w-3.5 h-3.5" />
+              <span>4. Clinical Management & Emergency Triage</span>
             </span>
-            <p className="text-slate-300 leading-relaxed">{selected.pharmacologyNote}</p>
+            <p className="text-slate-600 dark:text-slate-300 leading-relaxed">{selected.pharmacologyNote}</p>
           </div>
         </div>
 
-        <div className="pt-3 border-t border-white/[0.08] flex items-center justify-between text-[11px] font-mono text-slate-400">
+        <div className="pt-3 border-t border-slate-200 dark:border-slate-700/80 flex flex-col sm:flex-row items-center justify-between text-[11px] font-mono text-slate-500 gap-1">
           <span>Target Internal Dose Reduction: <strong>-83% Particulate Mass</strong></span>
           <span>Verified under WHO 2021 Air Quality Guidelines</span>
         </div>

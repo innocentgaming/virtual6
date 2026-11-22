@@ -40,15 +40,15 @@ export const CorsiRosenthalCustomizer: React.FC = () => {
   const totalCost = Math.round(fanCost + filterCost + 4); // +4 for duct tape & shroud
 
   return (
-    <div className="bg-slate-950/80 p-5 rounded-xl border border-white/10 space-y-5">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-white/[0.08] gap-2">
+    <div className="card-premium p-6 space-y-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 gap-2">
         <div className="flex items-center gap-2">
-          <Wrench className="w-4 h-4 text-emerald-400" />
-          <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-white">
-            Custom Parametric Purifier Sizing Calculator & Pressure Modeler
+          <Wrench className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+          <h4 className="text-sm font-bold font-display text-slate-900 dark:text-slate-100">
+            Parametric Purifier Sizing Calculator & Aerodynamic Modeler
           </h4>
         </div>
-        <span className="text-xs font-mono px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-500/40">
+        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800 self-start sm:self-auto">
           Estimated Build: ${totalCost}
         </span>
       </div>
@@ -56,93 +56,106 @@ export const CorsiRosenthalCustomizer: React.FC = () => {
       {/* Sizing Controls */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Fan Size */}
-        <div>
-          <label className="text-[11px] font-mono text-slate-300 block mb-1">Fan Chassis Size</label>
-          <div className="flex gap-1.5">
-            {[16, 20, 24].map(sz => (
+        <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
+          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-2">Fan Chassis Size</label>
+          <div className="grid grid-cols-3 gap-1.5">
+            {[16, 20, 24].map(size => (
               <button
-                key={sz}
+                key={size}
                 onClick={() => {
-                  playTactileClick(700, 0.02);
-                  setFanSizeInches(sz);
+                  playTactileClick(750, 0.02);
+                  setFanSizeInches(size);
                 }}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-mono transition border ${
-                  fanSizeInches === sz
-                    ? 'bg-emerald-600 text-white border-emerald-400 font-bold'
-                    : 'bg-slate-900 text-slate-400 border-white/5 hover:text-white'
+                className={`py-1.5 rounded-lg text-xs font-semibold transition ${
+                  fanSizeInches === size
+                    ? 'bg-emerald-600 text-white shadow-2xs font-bold'
+                    : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600'
                 }`}
               >
-                {sz}" Box Fan
+                {size}" Fan
               </button>
             ))}
           </div>
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1.5 block">20" standard offers best cost/CFM</span>
         </div>
 
-        {/* Filter Thickness */}
-        <div>
-          <label className="text-[11px] font-mono text-slate-300 block mb-1">MERV 13 Pleat Thickness</label>
-          <div className="flex gap-1.5">
-            {[1, 2, 4].map(th => (
+        {/* Filter Pleat Thickness */}
+        <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
+          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-2">MERV-13 Pleat Depth</label>
+          <div className="grid grid-cols-3 gap-1.5">
+            {[1, 2, 4].map(thick => (
               <button
-                key={th}
+                key={thick}
                 onClick={() => {
-                  playTactileClick(700, 0.02);
-                  setFilterThicknessInches(th);
+                  playTactileClick(750, 0.02);
+                  setFilterThicknessInches(thick);
                 }}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-mono transition border ${
-                  filterThicknessInches === th
-                    ? 'bg-emerald-600 text-white border-emerald-400 font-bold'
-                    : 'bg-slate-900 text-slate-400 border-white/5 hover:text-white'
+                className={`py-1.5 rounded-lg text-xs font-semibold transition ${
+                  filterThicknessInches === thick
+                    ? 'bg-emerald-600 text-white shadow-2xs font-bold'
+                    : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600'
                 }`}
               >
-                {th}" Deep Pleat
+                {thick}" Pleat
               </button>
             ))}
           </div>
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1.5 block">2" pleats double effective surface area</span>
         </div>
 
         {/* Geometry Configuration */}
-        <div>
-          <label className="text-[11px] font-mono text-slate-300 block mb-1">Cubic Geometry</label>
-          <select
-            value={filterGeometry}
-            onChange={(e) => {
-              playTactileClick(700, 0.02);
-              setFilterGeometry(e.target.value as any);
-            }}
-            className="w-full bg-slate-900 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white outline-none focus:border-emerald-500"
-          >
-            <option value="4_cube">4-Filter Standard Cube</option>
-            <option value="5_cube">5-Filter Compactor (Extra quiet)</option>
-            <option value="2_wedge">2-Filter Mini Wedge (Compact)</option>
-          </select>
+        <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
+          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-2">Assembly Geometry</label>
+          <div className="grid grid-cols-3 gap-1.5">
+            {[
+              { id: '4_cube' as const, label: '4-Cube' },
+              { id: '5_cube' as const, label: '5-Cube' },
+              { id: '2_wedge' as const, label: '2-Wedge' }
+            ].map(geom => (
+              <button
+                key={geom.id}
+                onClick={() => {
+                  playTactileClick(750, 0.02);
+                  setFilterGeometry(geom.id);
+                }}
+                className={`py-1.5 rounded-lg text-xs font-semibold transition ${
+                  filterGeometry === geom.id
+                    ? 'bg-emerald-600 text-white shadow-2xs font-bold'
+                    : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600'
+                }`}
+              >
+                {geom.label}
+              </button>
+            ))}
+          </div>
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1.5 block">4-cube is the golden standard</span>
         </div>
       </div>
 
-      {/* Physics Results Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center font-mono">
-        <div className="p-3 rounded-lg bg-slate-900/80 border border-white/5">
-          <span className="text-[10px] uppercase text-slate-400 block">Clean Air Rate (CADR)</span>
-          <span className="text-xl font-black text-emerald-400 mt-0.5 block">{calculatedCADR} CFM</span>
-          <span className="text-[10px] text-slate-500">{calculatedCADR_M3H} m³/hour</span>
+      {/* Aerodynamic Simulation Results Output */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 text-center">
+          <span className="text-[10px] font-semibold uppercase text-slate-500 dark:text-slate-400 block tracking-wider">Clean Air Delivery (CADR)</span>
+          <span className="text-2xl font-bold font-display text-emerald-600 dark:text-emerald-400 my-0.5 block">{calculatedCADR} CFM</span>
+          <span className="text-[10px] text-slate-500 font-mono">({calculatedCADR_M3H} m³/h)</span>
         </div>
 
-        <div className="p-3 rounded-lg bg-slate-900/80 border border-white/5">
-          <span className="text-[10px] uppercase text-slate-400 block">Total Filter Surface Area</span>
-          <span className="text-xl font-black text-cyan-400 mt-0.5 block">{totalEffectiveMediaAreaSqFt} sq ft</span>
-          <span className="text-[10px] text-slate-500">Low face velocity</span>
+        <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 text-center">
+          <span className="text-[10px] font-semibold uppercase text-slate-500 dark:text-slate-400 block tracking-wider">Effective Media Area</span>
+          <span className="text-2xl font-bold font-display text-sky-600 dark:text-sky-400 my-0.5 block">{totalEffectiveMediaAreaSqFt} ft²</span>
+          <span className="text-[10px] text-slate-500 font-mono">Total pleated surface</span>
         </div>
 
-        <div className="p-3 rounded-lg bg-slate-900/80 border border-white/5">
-          <span className="text-[10px] uppercase text-slate-400 block">Motor Thermal Safety</span>
-          <span className="text-xs font-bold text-slate-200 mt-1 block truncate">{pressureRisk.split(' (')[0]}</span>
-          <span className="text-[10px] text-slate-500">Static pressure balance</span>
+        <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 text-center">
+          <span className="text-[10px] font-semibold uppercase text-slate-500 dark:text-slate-400 block tracking-wider">Backpressure Risk</span>
+          <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 my-1 block">{pressureRisk}</span>
+          <span className="text-[10px] text-slate-500 font-mono">Motor lifespan: 3+ yrs</span>
         </div>
 
-        <div className="p-3 rounded-lg bg-slate-900/80 border border-white/5">
-          <span className="text-[10px] uppercase text-slate-400 block">Commercial Equivalent</span>
-          <span className="text-xl font-black text-white mt-0.5 block">$450 HEPA</span>
-          <span className="text-[10px] text-emerald-400">Save ~${450 - totalCost}</span>
+        <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 text-center">
+          <span className="text-[10px] font-semibold uppercase text-slate-500 dark:text-slate-400 block tracking-wider">Component Cost</span>
+          <span className="text-2xl font-bold font-display text-slate-900 dark:text-slate-100 my-0.5 block">${totalCost}</span>
+          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">vs $350 Commercial HEPA</span>
         </div>
       </div>
     </div>

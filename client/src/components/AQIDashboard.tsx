@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   CloudFog, 
   Wind, 
@@ -6,406 +6,338 @@ import {
   Droplets, 
   Clock, 
   AlertCircle, 
-  HeartHandshake, 
   CheckCircle2, 
-  Baby, 
-  UserCheck, 
   Activity,
   Compass,
   Radio,
-  Gauge
+  Gauge,
+  ArrowRight,
+  TrendingDown,
+  Layers,
+  Sparkles
 } from 'lucide-react';
-import { AQIData } from '../services/api';
+import { AQIData, HourlyForecastPoint, fetchPredictiveSmogForecast } from '../services/api';
+import { AQIGauge } from './AQIGauge';
+import { AQIMetricCard } from './AQIMetricCard';
+import { PollutantCard } from './PollutantCard';
+import { InversionAlert } from './InversionAlert';
+import { TrendChart } from './TrendChart';
+import { HealthInsightCard } from './HealthInsightCard';
+import { LoadingSkeleton } from './LoadingSkeleton';
+import { ErrorState } from './ErrorState';
 import { AtmosphericCanvas } from './AtmosphericCanvas';
-import { InversionColumn } from './InversionColumn';
 import { LungDepositionVisualizer } from './LungDepositionVisualizer';
-import { PredictiveSmogTimeline } from './PredictiveSmogTimeline';
 import { NeighborhoodMap } from './NeighborhoodMap';
 import { BiomassSmokeTracker } from './BiomassSmokeTracker';
 
 interface AQIDashboardProps {
   data: AQIData | null;
   isLoading: boolean;
+  onRefresh?: () => void;
+  onNavigateTab?: (tab: string) => void;
 }
 
-export const AQIDashboard: React.FC<AQIDashboardProps> = ({ data, isLoading }) => {
+export const AQIDashboard: React.FC<AQIDashboardProps> = ({ 
+  data, 
+  isLoading, 
+  onRefresh, 
+  onNavigateTab 
+}) => {
+  const [forecastPoints, setForecastPoints] = useState<HourlyForecastPoint[]>([]);
+  const [forecastLoading, setForecastLoading] = useState<boolean>(false);
+
+  // Load 24-hour forecast data for the trend chart
+  useEffect(() => {
+    if (data?.city) {
+      setForecastLoading(true);
+      fetchPredictiveSmogForecast(data.city)
+        .then(res => {
+          if (res && res.forecastPoints) {
+            setForecastPoints(res.forecastPoints);
+          }
+        })
+        .catch(err => {
+          console.warn('Could not load forecast trajectory:', err);
+        })
+        .finally(() => {
+          setForecastLoading(false);
+        });
+    }
+  }, [data?.city]);
+
   if (isLoading || !data) {
-    return (
-      <div className="py-24 flex flex-col items-center justify-center text-slate-400 space-y-4">
-        <div className="w-14 h-14 border-2 border-emerald-500/20 border-t-emerald-400 rounded-full animate-spin" />
-        <span className="font-mono text-xs tracking-wider text-slate-400 uppercase">
-          Initializing telemetry & atmospheric microclimate sensors...
-        </span>
-      </div>
-    );
+    return <LoadingSkeleton />;
   }
 
-  const getAQIColor = (aqi: number) => {
-    if (aqi <= 50) return '#10b981';
-    if (aqi <= 100) return '#f59e0b';
-    if (aqi <= 150) return '#f97316';
-    if (aqi <= 200) return '#ef4444';
-    if (aqi <= 300) return '#8b5cf6';
-    return '#dc2626';
+  // Calculate WHO multipliers
+  const pm25WhoMultiplier = (data.pollutants.pm25 / 15).toFixed(1);
+  const pm10WhoMultiplier = (data.pollutants.pm10 / 45).toFixed(1);
+
+  // Status colors based on PM2.5
+  const getPM25Status = (): 'emerald' | 'amber' | 'orange' | 'red' | 'purple' => {
+    if (data.pollutants.pm25 <= 15) return 'emerald';
+    if (data.pollutants.pm25 <= 35) return 'amber';
+    if (data.pollutants.pm25 <= 75) return 'orange';
+    if (data.pollutants.pm25 <= 150) return 'red';
+    return 'purple';
   };
 
-  // Percentage for circular meter (capped at 500)
-  const aqiPercentage = Math.min(100, Math.round((data.aqi / 500) * 100));
-  const strokeDashoffset = 283 - (283 * (aqiPercentage * 0.75)) / 100;
+  const formattedTime = new Date(data.timestamp).toLocaleTimeString([], { 
+    hour: '2-digit', 
+    minute: '2-digit' 
+  });
 
   return (
-    <div className="space-y-8">
-      {/* 1. Atmospheric Particle Physics Canvas (Interactive Simulation) */}
-      <section aria-label="Atmospheric Physics Simulation">
+    <div className="space-y-6 sm:space-y-8 animate-fadeIn">
+      {/* 1. Meteorological Thermal Inversion Alert Banner */}
+      <InversionAlert
+        isInversionLikely={data.isInversionLikely}
+        safeVentilationHours={data.safeVentilationHours}
+        temperature={data.temperature}
+        windSpeed={data.windSpeed}
+        humidity={data.humidity}
+        onExplorePhysics={() => onNavigateTab && onNavigateTab('air-quality')}
+      />
+
+      {/* 2. Executive Hero Grid: AQI Centerpiece + Key Telemetry */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        {/* Centerpiece AQI Dial Instrument (5 Cols) */}
+        <div className="lg:col-span-5 card-premium p-6 flex flex-col justify-between relative overflow-hidden bg-white dark:bg-slate-900">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
+              <Radio className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 animate-pulse" />
+              <span>LIVE TELEMETRY</span>
+            </div>
+            <span className="text-xs font-mono text-slate-400 dark:text-slate-500">
+              Observed {formattedTime}
+            </span>
+          </div>
+
+          {/* Animated SVG Centerpiece Gauge */}
+          <div className="py-2">
+            <AQIGauge
+              aqi={data.aqi}
+              level={data.level}
+              primaryPollutant={data.primaryPollutant || 'PM2.5'}
+              city={data.city}
+              country={data.country}
+              lastUpdated={formattedTime}
+            />
+          </div>
+
+          {/* Notice Alert Box */}
+          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-sans">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+              <span>{data.smogAlertNotice}</span>
+            </div>
+          </div>
+
+          {/* Weather strip at the bottom of the card */}
+          <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 grid grid-cols-3 gap-2 text-center text-xs">
+            <div className="p-2 rounded-lg bg-slate-50/80 dark:bg-slate-800/50">
+              <div className="flex items-center justify-center gap-1 text-slate-500 text-[10px] uppercase font-semibold">
+                <Thermometer className="w-3 h-3 text-sky-500" />
+                <span>Temp</span>
+              </div>
+              <span className="font-bold text-sm text-slate-800 dark:text-slate-200 mt-0.5 block">
+                {data.temperature}°C
+              </span>
+            </div>
+
+            <div className="p-2 rounded-lg bg-slate-50/80 dark:bg-slate-800/50">
+              <div className="flex items-center justify-center gap-1 text-slate-500 text-[10px] uppercase font-semibold">
+                <Droplets className="w-3 h-3 text-cyan-500" />
+                <span>Humidity</span>
+              </div>
+              <span className="font-bold text-sm text-slate-800 dark:text-slate-200 mt-0.5 block">
+                {data.humidity}%
+              </span>
+            </div>
+
+            <div className="p-2 rounded-lg bg-slate-50/80 dark:bg-slate-800/50">
+              <div className="flex items-center justify-center gap-1 text-slate-500 text-[10px] uppercase font-semibold">
+                <Wind className="w-3 h-3 text-teal-500" />
+                <span>Surface</span>
+              </div>
+              <span className="font-bold text-sm text-slate-800 dark:text-slate-200 mt-0.5 block">
+                {data.windSpeed} km/h
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Right 7 Cols: Primary Metric Cards Grid */}
+        <div className="lg:col-span-7 flex flex-col justify-between space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* PM2.5 Card */}
+            <AQIMetricCard
+              title="Fine Particulates"
+              symbol="PM2.5"
+              value={data.pollutants.pm25}
+              unit="µg/m³"
+              statusLabel={Number(pm25WhoMultiplier) > 1 ? `${pm25WhoMultiplier}× WHO Limit` : 'WHO Safe'}
+              statusColor={getPM25Status()}
+              benchmarkText="WHO 24h Threshold: ≤ 15 µg/m³"
+              progressPercent={Math.min((data.pollutants.pm25 / 150) * 100, 100)}
+              description="Microscopic soot capable of deep alveolar penetration."
+              subtext="Critical Driver"
+            />
+
+            {/* PM10 Card */}
+            <AQIMetricCard
+              title="Inhalable Dust"
+              symbol="PM10"
+              value={data.pollutants.pm10}
+              unit="µg/m³"
+              statusLabel={Number(pm10WhoMultiplier) > 1 ? `${pm10WhoMultiplier}× WHO Limit` : 'WHO Safe'}
+              statusColor={data.pollutants.pm10 > 45 ? 'amber' : 'emerald'}
+              benchmarkText="WHO 24h Threshold: ≤ 45 µg/m³"
+              progressPercent={Math.min((data.pollutants.pm10 / 250) * 100, 100)}
+              description="Coarse road dust, construction fly ash, and silica."
+              subtext="Upper Airways"
+            />
+
+            {/* Nitrogen Dioxide Card */}
+            <AQIMetricCard
+              title="Nitrogen Dioxide"
+              symbol="NO₂"
+              value={data.pollutants.no2}
+              unit="µg/m³"
+              statusLabel={data.pollutants.no2 > 25 ? 'Combustion' : 'Normal'}
+              statusColor={data.pollutants.no2 > 25 ? 'orange' : 'emerald'}
+              benchmarkText="WHO 24h Threshold: ≤ 25 µg/m³"
+              progressPercent={Math.min((data.pollutants.no2 / 100) * 100, 100)}
+              description="Heavy diesel exhaust & vehicle combustion by-product."
+              subtext="Corridor Gas"
+            />
+
+            {/* Ozone Card */}
+            <AQIMetricCard
+              title="Photochemical Ozone"
+              symbol="O₃"
+              value={data.pollutants.o3}
+              unit="µg/m³"
+              statusLabel={data.pollutants.o3 > 100 ? 'Elevated' : 'Sub-Threshold'}
+              statusColor={data.pollutants.o3 > 100 ? 'red' : 'emerald'}
+              benchmarkText="WHO 8h Threshold: ≤ 100 µg/m³"
+              progressPercent={Math.min((data.pollutants.o3 / 160) * 100, 100)}
+              description="Formed by photochemical solar reactions with VOCs."
+              subtext="Respiratory Oxidant"
+            />
+          </div>
+
+          {/* Quick Action Navigation Bar */}
+          <div className="card-premium p-4 flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50/70 dark:bg-slate-800/40">
+            <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
+              <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <span>Looking to build a low-cost $35 DIY Air Purifier or optimize your commute schedule?</span>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              {onNavigateTab && (
+                <>
+                  <button
+                    onClick={() => onNavigateTab('indoor-air')}
+                    className="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 text-xs font-semibold text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-600 transition shadow-2xs"
+                  >
+                    DIY Purifier CADR
+                  </button>
+                  <button
+                    onClick={() => onNavigateTab('routine')}
+                    className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-xs font-semibold text-white transition shadow-2xs flex items-center gap-1"
+                  >
+                    <span>Routine Optimizer</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. 24-Hour Diurnal Trend & Trajectory Chart */}
+      <TrendChart
+        dataPoints={forecastPoints}
+        title="24-Hour Atmospheric AQI & Particulate Trajectory"
+        subtitle="Diurnal solar convection peak vs nocturnal thermal boundary layer stagnation"
+      />
+
+      {/* 4. Chemical Spectrometry Grid: CO & SO2 Gas Breakdown */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Gauge className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <h3 className="text-sm font-bold font-display text-slate-900 dark:text-slate-100">
+              Secondary Chemical Spectrometry
+            </h3>
+          </div>
+          <span className="text-xs font-mono text-slate-400">
+            Open-Meteo European CAMS Environmental Model
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <PollutantCard
+            name="Carbon Monoxide"
+            formula="CO"
+            value={data.pollutants.co}
+            unit="µg/m³"
+            safeThreshold={4000}
+            category="Incomplete Combustion"
+            description="Generated by biomass burning, wood heating, and idling gasoline vehicles."
+            sourceType="Solid Fuels"
+          />
+
+          <PollutantCard
+            name="Sulfur Dioxide"
+            formula="SO₂"
+            value={data.pollutants.so2}
+            unit="µg/m³"
+            safeThreshold={40}
+            category="Heavy Fuel Combustion"
+            description="From industrial coal combustion, diesel generators, and heavy fuel oil."
+            sourceType="Industrial"
+          />
+
+          <PollutantCard
+            name="Ozone (Ground Level)"
+            formula="O₃"
+            value={data.pollutants.o3}
+            unit="µg/m³"
+            safeThreshold={100}
+            category="Secondary Oxidant"
+            description="Formed by VOCs and NOx reacting under ultraviolet radiation."
+            sourceType="Photochemical"
+          />
+
+          <PollutantCard
+            name="Nitrogen Dioxide"
+            formula="NO₂"
+            value={data.pollutants.no2}
+            unit="µg/m³"
+            safeThreshold={25}
+            category="Traffic Combustion"
+            description="Emitted directly from vehicular exhausts and power generation plants."
+            sourceType="Diesel & Power"
+          />
+        </div>
+      </div>
+
+      {/* 5. Personalized Clinical Health Recommendations */}
+      <HealthInsightCard
+        aqi={data.aqi}
+        isInversionActive={data.isInversionLikely}
+        safeVentilationHour={data.safeVentilationHours[0]}
+        onOpenRxSheet={() => onNavigateTab && onNavigateTab('health')}
+      />
+
+      {/* 6. Atmospheric Physics Interactive Simulation Canvas */}
+      <section aria-label="Atmospheric Physics Particle Simulation">
         <AtmosphericCanvas 
           aqi={data.aqi} 
           isInversionLikely={data.isInversionLikely} 
         />
-      </section>
-
-      {/* 2. Top Banner: Inversion & Safe Ventilation Window */}
-      {data.isInversionLikely && (
-        <section 
-          aria-labelledby="inversion-banner-heading"
-          className="p-5 rounded-2xl bg-[#120d08] border border-amber-500/40 shadow-2xl relative overflow-hidden"
-        >
-          <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
-          
-          <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div className="flex items-start gap-3.5">
-              <div className="p-2.5 rounded-xl bg-amber-500/15 text-amber-400 border border-amber-500/30 shrink-0">
-                <CloudFog className="w-6 h-6 animate-pulse" aria-hidden="true" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-[10px] uppercase font-bold tracking-wider border border-amber-500/40">
-                    METEOROLOGICAL EVENT
-                  </span>
-                  <h2 id="inversion-banner-heading" className="text-base font-bold text-amber-100">
-                    Radiation Temperature Inversion Active
-                  </h2>
-                </div>
-                <p className="text-xs text-amber-200/80 mt-1 max-w-2xl leading-relaxed font-sans">
-                  Cold, dense nocturnal air is trapped under a warm boundary lid at ~120m altitude. Ground exhaust and biomass smoke cannot disperse vertically.
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-[#1a140c] border border-amber-500/30 rounded-xl p-3 shrink-0 self-start md:self-auto min-w-[200px]">
-              <div className="flex items-center gap-1.5 text-[11px] text-amber-400 font-mono uppercase tracking-wider mb-1">
-                <Clock className="w-3.5 h-3.5" />
-                <span>Midday Solar Mixing</span>
-              </div>
-              <p className="text-sm font-bold font-mono text-white">
-                {data.safeVentilationHours[0] || '12:00 PM - 02:30 PM'}
-              </p>
-              <p className="text-[10px] text-slate-400 mt-0.5 font-mono">Solar flux expands trapped air column</p>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* 3. Main Stats Grid: Precision Instrument HUD */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Primary AQI Dial / Gauge Instrument (4 cols) */}
-        <div className="lg:col-span-4 bg-[#090c10] border border-white/10 rounded-2xl p-6 flex flex-col justify-between shadow-2xl relative">
-          <div>
-            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
-              <div className="flex items-center gap-1.5 text-[11px] font-mono text-slate-400 uppercase tracking-wider">
-                <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-                <span>SENSOR TELEMETRY</span>
-              </div>
-              <span className="text-[11px] font-mono text-slate-400">
-                {new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </span>
-            </div>
-
-            {/* Circular Gauge Graphic */}
-            <div className="my-6 flex flex-col items-center justify-center relative">
-              <svg className="w-48 h-48 -rotate-90" viewBox="0 0 100 100">
-                {/* Background track */}
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="45"
-                  fill="none"
-                  stroke="rgba(255, 255, 255, 0.07)"
-                  strokeWidth="8"
-                  strokeDasharray="212"
-                  strokeDashoffset="0"
-                  strokeLinecap="round"
-                />
-                {/* Active meter arc */}
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="45"
-                  fill="none"
-                  stroke={getAQIColor(data.aqi)}
-                  strokeWidth="8"
-                  strokeDasharray="212"
-                  strokeDashoffset={212 - (212 * aqiPercentage) / 100}
-                  strokeLinecap="round"
-                  className="transition-all duration-1000 ease-out"
-                />
-              </svg>
-
-              {/* Centered Dial Readout */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                <span className="text-[10px] font-mono tracking-widest uppercase text-slate-400">
-                  EPA AQI
-                </span>
-                <span 
-                  className="text-5xl font-black font-mono tracking-tight my-0.5"
-                  style={{ color: getAQIColor(data.aqi) }}
-                >
-                  {data.aqi}
-                </span>
-                <span className="text-xs font-bold px-2 py-0.5 rounded-full font-mono bg-white/5 border border-white/10 text-white">
-                  {data.level}
-                </span>
-              </div>
-            </div>
-
-            <div className="text-center pb-2">
-              <span className="text-xs font-mono text-slate-300 font-semibold">{data.city}, {data.country}</span>
-            </div>
-
-            <p className="text-xs text-slate-300 leading-relaxed bg-slate-950/80 p-3.5 rounded-xl border border-white/10 font-sans">
-              {data.smogAlertNotice}
-            </p>
-          </div>
-
-          {/* Meteorological Readings Strip */}
-          <div className="mt-6 pt-4 border-t border-white/[0.08] grid grid-cols-3 gap-2 text-center">
-            <div className="bg-slate-950/60 p-2.5 rounded-xl border border-white/5">
-              <div className="flex items-center justify-center gap-1 text-slate-400 text-[10px] font-mono uppercase">
-                <Thermometer className="w-3 h-3 text-blue-400" />
-                <span>Ambient</span>
-              </div>
-              <span className="font-bold font-mono text-sm text-slate-200 mt-0.5 block">{data.temperature}°C</span>
-            </div>
-
-            <div className="bg-slate-950/60 p-2.5 rounded-xl border border-white/5">
-              <div className="flex items-center justify-center gap-1 text-slate-400 text-[10px] font-mono uppercase">
-                <Droplets className="w-3 h-3 text-cyan-400" />
-                <span>Humidity</span>
-              </div>
-              <span className="font-bold font-mono text-sm text-slate-200 mt-0.5 block">{data.humidity}%</span>
-            </div>
-
-            <div className="bg-slate-950/60 p-2.5 rounded-xl border border-white/5">
-              <div className="flex items-center justify-center gap-1 text-slate-400 text-[10px] font-mono uppercase">
-                <Wind className="w-3 h-3 text-teal-400" />
-                <span>Surface</span>
-              </div>
-              <span className="font-bold font-mono text-sm text-slate-200 mt-0.5 block">{data.windSpeed} km/h</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Granular 6-Pollutant Matrix (8 cols) */}
-        <div className="lg:col-span-8 bg-[#090c10] border border-white/10 rounded-2xl p-6 shadow-2xl flex flex-col justify-between">
-          <div>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-white/[0.08] gap-2">
-              <div className="flex items-center gap-2">
-                <Gauge className="w-4 h-4 text-emerald-400" />
-                <h3 className="text-sm font-mono uppercase tracking-wider font-bold text-white">
-                  Chemical & Particulate Spectrometry
-                </h3>
-              </div>
-              <span className="text-[11px] font-mono text-slate-400">
-                WHO 24h Threshold: PM2.5 ≤ 15 µg/m³
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 mt-4">
-              {/* PM2.5 */}
-              <div className="p-4 rounded-xl bg-slate-950/80 border border-red-500/30 space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono font-bold text-slate-300">PM2.5</span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-red-950/80 text-red-300 border border-red-600/40 font-bold">
-                    {(data.pollutants.pm25 / 15).toFixed(1)}× WHO
-                  </span>
-                </div>
-                <div className="text-2xl font-black font-mono text-red-400">
-                  {data.pollutants.pm25} <span className="text-xs font-normal text-slate-400">µg/m³</span>
-                </div>
-                <p className="text-[11px] text-slate-400 font-sans">Deep lung alveolar penetrator</p>
-              </div>
-
-              {/* PM10 */}
-              <div className="p-4 rounded-xl bg-slate-950/80 border border-amber-500/30 space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono font-bold text-slate-300">PM10</span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-600/40 font-bold">
-                    {(data.pollutants.pm10 / 45).toFixed(1)}× WHO
-                  </span>
-                </div>
-                <div className="text-2xl font-black font-mono text-amber-400">
-                  {data.pollutants.pm10} <span className="text-xs font-normal text-slate-400">µg/m³</span>
-                </div>
-                <p className="text-[11px] text-slate-400 font-sans">Coarse road dust & grit</p>
-              </div>
-
-              {/* NO2 */}
-              <div className="p-4 rounded-xl bg-slate-950/80 border border-orange-500/30 space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono font-bold text-slate-300">NO₂</span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-orange-950/80 text-orange-300 border border-orange-600/40 font-bold">
-                    Combustion
-                  </span>
-                </div>
-                <div className="text-2xl font-black font-mono text-orange-400">
-                  {data.pollutants.no2} <span className="text-xs font-normal text-slate-400">µg/m³</span>
-                </div>
-                <p className="text-[11px] text-slate-400 font-sans">Diesel vehicle emissions</p>
-              </div>
-
-              {/* Ozone O3 */}
-              <div className="p-4 rounded-xl bg-slate-950/80 border border-emerald-500/30 space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono font-bold text-slate-300">O₃ (Ozone)</span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-600/40 font-bold">
-                    Oxidant
-                  </span>
-                </div>
-                <div className="text-2xl font-black font-mono text-emerald-400">
-                  {data.pollutants.o3} <span className="text-xs font-normal text-slate-400">µg/m³</span>
-                </div>
-                <p className="text-[11px] text-slate-400 font-sans">Sunlight photochemical gas</p>
-              </div>
-
-              {/* Carbon Monoxide CO */}
-              <div className="p-4 rounded-xl bg-slate-950/80 border border-blue-500/30 space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono font-bold text-slate-300">CO</span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-950/80 text-blue-300 border border-blue-600/40 font-bold">
-                    Incomplete
-                  </span>
-                </div>
-                <div className="text-2xl font-black font-mono text-blue-400">
-                  {data.pollutants.co} <span className="text-xs font-normal text-slate-400">µg/m³</span>
-                </div>
-                <p className="text-[11px] text-slate-400 font-sans">Solid fuel & charcoal burning</p>
-              </div>
-
-              {/* SO2 */}
-              <div className="p-4 rounded-xl bg-slate-950/80 border border-purple-500/30 space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono font-bold text-slate-300">SO₂</span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-purple-950/80 text-purple-300 border border-purple-600/40 font-bold">
-                    Heavy Fuel
-                  </span>
-                </div>
-                <div className="text-2xl font-black font-mono text-purple-400">
-                  {data.pollutants.so2} <span className="text-xs font-normal text-slate-400">µg/m³</span>
-                </div>
-                <p className="text-[11px] text-slate-400 font-sans">Coal power & sulfur heating</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4 pt-4 border-t border-white/[0.08] flex items-center justify-between text-[11px] font-mono text-slate-400">
-            <span>Primary Dominant Factor: <strong>Fine Combustion Carbon (PM2.5)</strong></span>
-            <span>Dispersion Index: <strong>Severely Constrained</strong></span>
-          </div>
-        </div>
-      </div>
-
-      {/* 4. Thermal Inversion Atmospheric Column Cross-Section */}
-      <InversionColumn 
-        currentAqi={data.aqi} 
-        isInversionLikely={data.isInversionLikely} 
-      />
-
-      {/* 5. 72-Hour Planetary Boundary Layer & Smog Trajectory Model */}
-      <PredictiveSmogTimeline 
-        city={data.city} 
-      />
-
-      {/* 6. Hyper-Local Spatial Sensor Grid & Clean Air Refuge Locator */}
-      <NeighborhoodMap 
-        city={data.city} 
-        baseAqi={data.aqi} 
-        basePm25={data.pollutants.pm25} 
-      />
-
-      {/* 7. Satellite Fire Thermal Anomaly & Plume Tracer */}
-      <BiomassSmokeTracker 
-        city={data.city} 
-        ambientPM25={data.pollutants.pm25} 
-      />
-
-      {/* 8. Human Respiratory Particulate Deposition Simulator */}
-      <LungDepositionVisualizer 
-        pm25={data.pollutants.pm25} 
-      />
-
-      {/* 6. Household Smog Defense Protocol */}
-      <section 
-        aria-labelledby="safety-checklist-heading"
-        className="bg-[#090c10] border border-white/10 rounded-2xl p-6 shadow-2xl"
-      >
-        <div className="flex items-center gap-2 mb-4 pb-3 border-b border-white/[0.08]">
-          <HeartHandshake className="w-5 h-5 text-emerald-400" />
-          <h3 id="safety-checklist-heading" className="text-sm font-mono uppercase tracking-wider font-bold text-white">
-            Household Clinical Defense Protocol
-          </h3>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-slate-950/70 border border-white/10 rounded-xl p-4 space-y-2">
-            <div className="flex items-center gap-2 text-rose-400 font-mono font-bold text-xs uppercase">
-              <Baby className="w-4 h-4" />
-              <h4>Infants & Children</h4>
-            </div>
-            <ul className="text-xs text-slate-300 space-y-2 font-sans">
-              <li className="flex items-start gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                <span>Inhale 2× more air volume per kilogram of body weight than adults; postpone outdoor sports.</span>
-              </li>
-              <li className="flex items-start gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                <span>Use pediatric KF94 respirators; standard adult masks leave side cheek gaps.</span>
-              </li>
-            </ul>
-          </div>
-
-          <div className="bg-slate-950/70 border border-white/10 rounded-xl p-4 space-y-2">
-            <div className="flex items-center gap-2 text-amber-400 font-mono font-bold text-xs uppercase">
-              <Activity className="w-4 h-4" />
-              <h4>Asthmatics & Cardiac Patients</h4>
-            </div>
-            <ul className="text-xs text-slate-300 space-y-2 font-sans">
-              <li className="flex items-start gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                <span>PM2.5 triggers bronchospasm & endothelial stress; keep rescue bronchodilator on person.</span>
-              </li>
-              <li className="flex items-start gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                <span>Run bedroom air filtration continuously on low setting to prevent nocturnal asthma spikes.</span>
-              </li>
-            </ul>
-          </div>
-
-          <div className="bg-slate-950/70 border border-white/10 rounded-xl p-4 space-y-2">
-            <div className="flex items-center gap-2 text-teal-400 font-mono font-bold text-xs uppercase">
-              <UserCheck className="w-4 h-4" />
-              <h4>Elderly & Commuters</h4>
-            </div>
-            <ul className="text-xs text-slate-300 space-y-2 font-sans">
-              <li className="flex items-start gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                <span>Avoid walking alongside heavy diesel corridors; choose residential side streets.</span>
-              </li>
-              <li className="flex items-start gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                <span>Perform gentle isotonic nasal rinse post-commute to remove particulate accumulation.</span>
-              </li>
-            </ul>
-          </div>
-        </div>
       </section>
     </div>
   );

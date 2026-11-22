@@ -35,137 +35,147 @@ export const BiomassSmokeTracker: React.FC<BiomassSmokeTrackerProps> = ({ city, 
   const biomassPM25 = Math.round(ambientPM25 * (biomassShare / 100));
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-[#090c10] p-6 shadow-2xl space-y-6">
+    <div className="card-premium p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
         <div>
           <div className="flex items-center gap-2">
-            <Satellite className="w-4 h-4 text-orange-400" />
-            <h3 className="text-sm font-mono uppercase tracking-wider font-bold text-white">
+            <Satellite className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+            <h3 className="text-sm font-bold font-display text-slate-900 dark:text-slate-100">
               Satellite Thermal Fire Anomaly & Agricultural Smoke Drift Tracer
             </h3>
           </div>
-          <p className="text-xs text-slate-400 mt-1 font-sans">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-sans">
             MODIS / VIIRS satellite thermal hotspot detection and forward smoke plume trajectory calculation.
           </p>
         </div>
 
         {/* Hotspot Count Pill */}
-        <div className="p-2.5 rounded-xl bg-orange-950/70 border border-orange-500/40 text-orange-300 font-mono text-xs self-start sm:self-auto flex items-center gap-2">
-          <Flame className="w-4 h-4 text-orange-400 shrink-0" />
+        <div className="p-2.5 rounded-xl bg-orange-50 dark:bg-orange-950/50 border border-orange-200 dark:border-orange-800 text-orange-800 dark:text-orange-300 font-mono text-xs self-start sm:self-auto flex items-center gap-2 shadow-2xs">
+          <Flame className="w-4 h-4 text-orange-600 dark:text-orange-400 shrink-0" />
           <span>Active Upwind Thermal Hotspots: <strong>{activeFireCount.toLocaleString()}</strong></span>
         </div>
       </div>
 
       {/* Trajectory Calculation Controls */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-950/80 p-4 rounded-xl border border-white/10">
-        <div className="space-y-1.5">
-          <div className="flex justify-between text-xs font-mono">
-            <span className="text-slate-400">Upwind Steering Wind Speed:</span>
-            <span className="text-white font-bold">{windSpeedKmh} km/h</span>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Wind Speed Slider */}
+        <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-3">
+          <div className="flex items-center justify-between text-xs font-semibold text-slate-800 dark:text-slate-200">
+            <div className="flex items-center gap-1.5">
+              <Wind className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+              <span>Transport Wind Speed</span>
+            </div>
+            <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">{windSpeedKmh} km/h</span>
           </div>
           <input
             type="range"
             min="4"
             max="35"
+            step="1"
             value={windSpeedKmh}
+            aria-label="Transport Wind Speed"
             onChange={(e) => {
-              playTactileClick(650, 0.01);
               setWindSpeedKmh(Number(e.target.value));
             }}
-            className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-orange-500"
+            className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer"
           />
+          <div className="flex justify-between text-[10px] font-mono text-slate-400">
+            <span>4 km/h (Stagnant)</span>
+            <span>35 km/h (Rapid Dispersion)</span>
+          </div>
         </div>
 
-        <div className="flex items-center justify-between">
-          <div>
-            <span className="text-xs font-mono text-slate-300 font-bold block">
-              Plume Trajectory Drift Vector
-            </span>
-            <span className="text-[11px] font-sans text-slate-400">
-              Northwest prevailing winter corridor
-            </span>
+        {/* Wind Vector Direction */}
+        <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-3">
+          <div className="flex items-center justify-between text-xs font-semibold text-slate-800 dark:text-slate-200">
+            <div className="flex items-center gap-1.5">
+              <Compass className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
+              <span>Plume Approach Vector</span>
+            </div>
+            <span className="font-mono text-orange-600 dark:text-orange-400 font-bold">{windDirection} Bearing</span>
           </div>
-
-          <div className="flex items-center gap-1 p-0.5 rounded-lg bg-slate-900 border border-slate-800">
+          <div className="grid grid-cols-4 gap-1.5">
             {(['NW', 'W', 'SW', 'N'] as const).map(dir => (
               <button
                 key={dir}
                 onClick={() => {
-                  playTactileClick(700, 0.02);
+                  playTactileClick(750, 0.02);
                   setWindDirection(dir);
                 }}
-                className={`px-2.5 py-1 rounded text-xs font-mono font-bold transition ${
-                  windDirection === dir ? 'bg-orange-600 text-white' : 'text-slate-400 hover:text-white'
+                className={`py-1 rounded-lg text-xs font-mono font-bold transition ${
+                  windDirection === dir
+                    ? 'bg-orange-600 text-white shadow-2xs'
+                    : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600'
                 }`}
               >
                 {dir}
               </button>
             ))}
           </div>
+          <p className="text-[10px] text-slate-500 dark:text-slate-400">NW vector channels smoke from agrarian burning belts.</p>
+        </div>
+
+        {/* Calculated Plume Transit Lag */}
+        <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 flex flex-col justify-between">
+          <div className="flex items-center justify-between text-xs font-semibold text-slate-800 dark:text-slate-200">
+            <div className="flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+              <span>Plume Transit Lag</span>
+            </div>
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 font-semibold">
+              Lag Forecast
+            </span>
+          </div>
+          <div className="my-1.5">
+            <span className="text-3xl font-black font-display text-slate-900 dark:text-slate-100">{transitHours}</span>
+            <span className="text-xs text-slate-500 font-mono ml-1">Hours</span>
+          </div>
+          <p className="text-[10px] text-slate-500 dark:text-slate-400">
+            Smoke emitted now enters city boundary in ~{transitHours}h.
+          </p>
         </div>
       </div>
 
-      {/* Trajectory Telemetry Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 font-mono text-xs">
-        <div className="p-4 rounded-xl bg-slate-950/80 border border-white/10 space-y-1">
-          <span className="text-[10px] uppercase text-slate-400 block">Plume Transit Lag</span>
-          <div className="text-2xl font-black text-orange-400 mt-0.5 block">{transitHours} hours</div>
-          <span className="text-[11px] text-slate-400 font-sans">
-            Fires lit upwind at 02:00 AM impact city center at ~{Math.round(2 + transitHours)}:00 AM
+      {/* Chemical Mass Balance Apportionment */}
+      <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Layers className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide">
+              Chemical Mass-Balance Source Apportionment
+            </h4>
+          </div>
+          <span className="text-[11px] font-mono text-slate-500">
+            Agricultural Contribution: <strong>{biomassPM25} µg/m³</strong> ({biomassShare}% of ambient)
           </span>
         </div>
 
-        <div className="p-4 rounded-xl bg-slate-950/80 border border-white/10 space-y-1">
-          <span className="text-[10px] uppercase text-slate-400 block">Biomass PM2.5 Share</span>
-          <div className="text-2xl font-black text-white mt-0.5 block">{biomassShare}% ({biomassPM25} µg/m³)</div>
-          <span className="text-[11px] text-slate-400 font-sans">
-            Direct organic carbon and levoglucosan signature
-          </span>
+        {/* Stacked Multi-Color Proportion Bar */}
+        <div className="w-full h-3 rounded-full overflow-hidden flex shadow-2xs">
+          <div style={{ width: `${biomassShare}%` }} className="bg-orange-500 h-full" title={`Biomass Burning: ${biomassShare}%`} />
+          <div style={{ width: `${vehicleShare}%` }} className="bg-rose-500 h-full" title={`Diesel Vehicular: ${vehicleShare}%`} />
+          <div style={{ width: `${industryShare}%` }} className="bg-purple-500 h-full" title={`Industrial Point Sources: ${industryShare}%`} />
+          <div style={{ width: `${dustShare}%` }} className="bg-amber-400 h-full" title={`Construction Dust: ${dustShare}%`} />
         </div>
 
-        <div className="p-4 rounded-xl bg-slate-950/80 border border-white/10 space-y-1">
-          <span className="text-[10px] uppercase text-slate-400 block">Basin Trapping Factor</span>
-          <div className="text-2xl font-black text-amber-400 mt-0.5 block">High Risk</div>
-          <span className="text-[11px] text-slate-400 font-sans">
-            Smoke settles into urban river basin beneath cold air cap
-          </span>
-        </div>
-      </div>
-
-      {/* Source Apportionment Breakdown Bar */}
-      <div className="bg-slate-950/80 p-5 rounded-xl border border-white/10 space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-mono font-bold uppercase tracking-wider text-white">
-            Chemical Mass Balance Source Apportionment
-          </span>
-          <span className="text-xs font-mono text-slate-400">Total: {ambientPM25} µg/m³</span>
-        </div>
-
-        {/* Visual Multi-Segment Bar */}
-        <div className="w-full h-3 rounded-full overflow-hidden flex bg-slate-800">
-          <div style={{ width: `${biomassShare}%` }} className="bg-orange-500" title="Biomass / Agricultural 38%" />
-          <div style={{ width: `${vehicleShare}%` }} className="bg-rose-500" title="Vehicular Diesel 28%" />
-          <div style={{ width: `${industryShare}%` }} className="bg-purple-500" title="Industrial Point Sources 20%" />
-          <div style={{ width: `${dustShare}%` }} className="bg-amber-500" title="Road Dust 14%" />
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-[11px] font-mono">
-          <div className="flex items-center gap-1.5 text-slate-300">
+        {/* Legend */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-[11px] font-mono text-slate-600 dark:text-slate-400">
+          <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-orange-500 shrink-0" />
-            <span>Biomass: {biomassShare}%</span>
+            <span>Biomass Burning ({biomassShare}%)</span>
           </div>
-          <div className="flex items-center gap-1.5 text-slate-300">
+          <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0" />
-            <span>Vehicular: {vehicleShare}%</span>
+            <span>Diesel Traffic ({vehicleShare}%)</span>
           </div>
-          <div className="flex items-center gap-1.5 text-slate-300">
+          <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-purple-500 shrink-0" />
-            <span>Industrial: {industryShare}%</span>
+            <span>Industrial Point ({industryShare}%)</span>
           </div>
-          <div className="flex items-center gap-1.5 text-slate-300">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0" />
-            <span>Road Dust: {dustShare}%</span>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0" />
+            <span>Road Dust ({dustShare}%)</span>
           </div>
         </div>
       </div>
