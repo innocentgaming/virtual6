@@ -1,0 +1,31 @@
+1
+00:00:00,500 --> 00:00:18,000
+Every day, millions of people breathe polluted air without knowing how it affects their health. Air quality information is often confusing, scattered, and difficult to act upon. That's why we built BreatheSmart AI.
+
+2
+00:00:20,800 --> 00:00:35,000
+Introducing BreatheSmart AI, an intelligent winter smog and urban clean-air navigator designed to make air quality information easier to understand and everyday decisions smarter.
+
+3
+00:00:41,000 --> 00:01:07,500
+The dashboard brings important air quality information together in one place. Users can explore available air quality readings, including PM2.5 and PM10, along with other pollutant and environmental indicators. Instead of looking at raw numbers alone, the dashboard helps users understand what the readings mean.
+
+4
+00:01:16,000 --> 00:01:33,500
+Knowing the air quality is only the first step. BreatheSmart AI also helps users make smarter daily decisions through its routine planning experience, helping them consider air conditions when planning outdoor activities.
+
+5
+00:01:41,000 --> 00:01:56,500
+The indoor air quality simulator helps users explore how different conditions can influence indoor air quality. It makes the concept of cleaner indoor environments easier to understand.
+
+6
+00:02:01,000 --> 00:02:13,500
+We also encourage practical action through our DIY air purifier guide, which introduces an accessible approach to improving indoor air filtration.
+
+7
+00:02:21,000 --> 00:02:37,500
+The AI assistant makes air-quality information more accessible through conversational interaction. The community section adds another layer by bringing people together around awareness and cleaner-air initiatives.
+
+8
+00:02:40,200 --> 00:02:59,500
+BreatheSmart AI is more than an air quality dashboard. It's a step towards informed decisions, healthier routines, and cleaner indoor environments. Understand your air. Make smarter choices. Breathe better. BreatheSmart AI.
