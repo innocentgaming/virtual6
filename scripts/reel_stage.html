@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1080, height=1920, initial-scale=1.0" />
+  <title>BreatheSmart AI - Animated Reel Stage</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 1080px;
+      height: 1920px;
+      overflow: hidden;
+      background: #020617;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+      color: #f8fafc;
+    }
+
+    /* Animated Studio Gradient Backdrop */
+    #studio-bg {
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.22) 0%, transparent 45%),
+        radial-gradient(circle at 80% 75%, rgba(56, 189, 248, 0.20) 0%, transparent 50%),
+        linear-gradient(160deg, #020617 0%, #091326 50%, #020617 100%);
+      z-index: 0;
+    }
+
+    #bg-particles {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Kinetic Top Feature Pill */
+    #scene-badge {
+      position: fixed;
+      top: 72px;
+      left: 50%;
+      transform: translate(-50%, -30px);
+      opacity: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 32px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1.5px solid rgba(52, 211, 153, 0.45);
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55), 0 0 28px rgba(16, 185, 129, 0.25);
+      backdrop-filter: blur(16px);
+    }
+    .badge-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #34d399;
+      box-shadow: 0 0 14px #34d399;
+    }
+    #badge-text {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #ecfdf5;
+      white-space: nowrap;
+    }
+
+    /* 3D Perspective Stage */
+    #stage-viewport {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      perspective: 1800px;
+      z-index: 10;
+    }
+
+    #device-frame {
+      width: 940px;
+      height: 1580px;
+      margin-top: 40px;
+      border-radius: 38px;
+      background: #0f172a;
+      border: 2px solid rgba(52, 211, 153, 0.32);
+      box-shadow:
+        0 50px 120px rgba(0, 0, 0, 0.85),
+        0 0 80px rgba(16, 185, 129, 0.16),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      overflow: hidden;
+      transform-style: preserve-3d;
+      will-change: transform, opacity;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Sleek Browser Chrome */
+    .browser-bar {
+      height: 56px;
+      background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      flex-shrink: 0;
+    }
+    .traffic-lights {
+      display: flex;
+      gap: 10px;
+    }
+    .tl { width: 14px; height: 14px; border-radius: 50%; }
+    .tl-red { background: #ef4444; }
+    .tl-amber { background: #f59e0b; }
+    .tl-green { background: #10b981; }
+
+    .url-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(2, 6, 23, 0.65);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      padding: 8px 24px;
+      border-radius: 999px;
+      font-size: 18px;
+      font-weight: 500;
+      color: #cbd5e1;
+    }
+    .url-lock { color: #34d399; font-weight: 700; }
+
+    #app-frame {
+      width: 100%;
+      height: calc(100% - 56px);
+      border: none;
+      background: #0f172a;
+    }
+
+    /* Virtual Animated Cursor */
+    #virtual-cursor {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 44px;
+      height: 44px;
+      z-index: 90;
+      pointer-events: none;
+      opacity: 0;
+      filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.65));
+      transform: translate(-100px, -100px);
+    }
+
+    #cursor-ripple {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 80px;
+      height: 80px;
+      margin-left: -40px;
+      margin-top: -40px;
+      border-radius: 50%;
+      border: 4px solid #34d399;
+      background: rgba(52, 211, 153, 0.25);
+      z-index: 89;
+      pointer-events: none;
+      opacity: 0;
+      transform: scale(0.1);
+    }
+
+    /* Cinematic Intro Overlay */
+    #intro-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 50% 45%, rgba(16, 185, 129, 0.16) 0%, #020617 70%);
+      pointer-events: none;
+    }
+
+    .radar-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 2px solid rgba(52, 211, 153, 0.28);
+      pointer-events: none;
+    }
+
+    .intro-logo-box {
+      width: 168px;
+      height: 168px;
+      border-radius: 42px;
+      background: linear-gradient(135deg, #10b981 0%, #0ea5e9 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 24px 70px rgba(16, 185, 129, 0.45);
+      margin-bottom: 40px;
+    }
+
+    .intro-title {
+      font-size: 76px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(90deg, #ffffff 0%, #a7f3d0 50%, #38bdf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-align: center;
+    }
+
+    .intro-subtitle {
+      margin-top: 18px;
+      font-size: 30px;
+      font-weight: 500;
+      color: #94a3b8;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* Cinematic Outro Overlay */
+    #outro-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(2, 6, 23, 0.84);
+      backdrop-filter: blur(14px);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .outro-card {
+      padding: 64px 56px;
+      border-radius: 40px;
+      background: linear-gradient(160deg, rgba(15, 23, 42, 0.95), rgba(6, 78, 59, 0.45));
+      border: 2px solid rgba(52, 211, 153, 0.4);
+      box-shadow: 0 36px 90px rgba(0, 0, 0, 0.8), 0 0 60px rgba(16, 185, 129, 0.25);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      max-width: 860px;
+    }
+
+    .outro-cta {
+      margin-top: 36px;
+      padding: 20px 44px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #10b981, #0ea5e9);
+      font-size: 28px;
+      font-weight: 700;
+      color: #020617;
+      box-shadow: 0 12px 32px rgba(16, 185, 129, 0.4);
+    }
+
+    /* Bottom Progress Bar */
+    #progress-track {
+      position: fixed;
+      bottom: 34px;
+      left: 120px;
+      right: 120px;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.2);
+      z-index: 95;
+      overflow: hidden;
+    }
+    #progress-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #34d399, #38bdf8);
+      box-shadow: 0 0 16px rgba(52, 211, 153, 0.8);
+    }
+  </style>
+</head>
+<body>
+  <div id="studio-bg"></div>
+  <canvas id="bg-particles" width="1080" height="1920"></canvas>
+
+  <div id="scene-badge">
+    <div class="badge-dot"></div>
+    <span id="badge-text">LIVE AQI DASHBOARD</span>
+  </div>
+
+  <div id="stage-viewport">
+    <div id="device-frame">
+      <div class="browser-bar">
+        <div class="traffic-lights">
+          <div class="tl tl-red"></div>
+          <div class="tl tl-amber"></div>
+          <div class="tl tl-green"></div>
+        </div>
+        <div class="url-pill">
+          <span class="url-lock">🔒</span>
+          <span>breathesmart-ai.onrender.com</span>
+        </div>
+        <div style="width: 60px;"></div>
+      </div>
+      <iframe id="app-frame" src="/"></iframe>
+    </div>
+  </div>
+
+  <div id="cursor-ripple"></div>
+  <svg id="virtual-cursor" viewBox="0 0 36 36" fill="none">
+    <path d="M6 3L30 17.5L18.5 20.5L13.5 32L6 3Z" fill="#ffffff" stroke="#0f172a" stroke-width="2.5" stroke-linejoin="round"/>
+  </svg>
+
+  <!-- Intro Overlay -->
+  <div id="intro-overlay">
+    <div id="ring-1" class="radar-ring" style="width: 280px; height: 280px;"></div>
+    <div id="ring-2" class="radar-ring" style="width: 460px; height: 460px;"></div>
+    <div id="ring-3" class="radar-ring" style="width: 660px; height: 660px;"></div>
+    <div id="intro-content" style="display:flex; flex-direction:column; align-items:center; z-index:2;">
+      <div class="intro-logo-box">
+        <svg width="92" height="92" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="M8 11c1.5-2 4.5-2 6 0"/>
+          <path d="M9 15c1-1 3-1 4 0"/>
+        </svg>
+      </div>
+      <div class="intro-title">BreatheSmart AI</div>
+      <div class="intro-subtitle">Urban Clean-Air Navigator</div>
+    </div>
+  </div>
+
+  <!-- Outro Overlay -->
+  <div id="outro-overlay">
+    <div id="outro-card" class="outro-card">
+      <div class="intro-logo-box" style="width:128px; height:128px; border-radius:32px; margin-bottom:28px;">
+        <svg width="70" height="70" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="M8 11c1.5-2 4.5-2 6 0"/>
+          <path d="M9 15c1-1 3-1 4 0"/>
+        </svg>
+      </div>
+      <div class="intro-title" style="font-size: 62px;">BreatheSmart AI</div>
+      <div style="margin-top: 16px; font-size: 28px; color: #cbd5e1; font-weight: 500;">
+        Understand the Air. Protect Your Health.
+      </div>
+      <div class="outro-cta">breathesmart-ai.onrender.com</div>
+    </div>
+  </div>
+
+  <div id="progress-track">
+    <div id="progress-fill"></div>
+  </div>
+
+  <script>
+    // Deterministic particles
+    const canvas = document.getElementById('bg-particles');
+    const ctx = canvas.getContext('2d');
+    const particles = Array.from({ length: 45 }, (_, i) => ({
+      x0: (i * 197) % 1080,
+      y0: (i * 313) % 1920,
+      r: 2 + (i % 4) * 1.4,
+      speedY: 22 + (i % 7) * 8,
+      drift: 18 + (i % 5) * 6,
+      phase: i * 0.7,
+      alpha: 0.12 + (i % 5) * 0.06,
+      color: i % 2 === 0 ? '52, 211, 153' : '56, 189, 248'
+    }));
+
+    function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+    function lerp(a, b, t) { return a + (b - a) * clamp(t, 0, 1); }
+    function easeOutCubic(t) { t = clamp(t, 0, 1); return 1 - Math.pow(1 - t, 3); }
+    function easeInOutCubic(t) { t = clamp(t, 0, 1); return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3)/2; }
+
+    function interpKeyframes(t, kfs, prop) {
+      if (t <= kfs[0].t) return kfs[0][prop];
+      if (t >= kfs[kfs.length - 1].t) return kfs[kfs.length - 1][prop];
+      for (let i = 0; i < kfs.length - 1; i++) {
+        if (t >= kfs[i].t && t <= kfs[i + 1].t) {
+          const span = kfs[i + 1].t - kfs[i].t;
+          const u = easeInOutCubic((t - kfs[i].t) / span);
+          return lerp(kfs[i][prop], kfs[i + 1][prop], u);
+        }
+      }
+      return kfs[0][prop];
+    }
+
+    // 3D Camera Keyframes (0s -> 36s)
+    const camKeyframes = [
+      { t: 0.0,  scale: 0.82, rotX: 16, rotY: -12, transY: 220, opacity: 0 },
+      { t: 3.6,  scale: 0.86, rotX: 12, rotY: -8,  transY: 120, opacity: 0.2 },
+      { t: 4.8,  scale: 0.98, rotX: 2,  rotY: 0,   transY: 0,   opacity: 1 },
+      { t: 8.2,  scale: 1.00, rotX: 0,  rotY: 0,   transY: 0,   opacity: 1 },
+      { t: 9.8,  scale: 1.15, rotX: -2, rotY: 3,   transY: -40, opacity: 1 },
+      { t: 13.0, scale: 1.12, rotX: -1, rotY: 2,   transY: -20, opacity: 1 },
+      { t: 14.5, scale: 0.97, rotX: 3,  rotY: -5,  transY: 10,  opacity: 1 },
+      { t: 18.0, scale: 1.06, rotX: 1,  rotY: -3,  transY: -15, opacity: 1 },
+      { t: 22.0, scale: 1.02, rotX: 2,  rotY: 0,   transY: 0,   opacity: 1 },
+      { t: 23.5, scale: 0.98, rotX: 3,  rotY: 5,   transY: 10,  opacity: 1 },
+      { t: 27.5, scale: 1.08, rotX: 0,  rotY: 2,   transY: -20, opacity: 1 },
+      { t: 30.2, scale: 0.96, rotX: 4,  rotY: 0,   transY: 0,   opacity: 1 },
+      { t: 32.0, scale: 0.88, rotX: 12, rotY: -10, transY: 60,  opacity: 0.85 },
+      { t: 36.0, scale: 0.84, rotX: 16, rotY: -14, transY: 90,  opacity: 0.65 }
+    ];
+
+    // Cursor Path Keyframes
+    const cursorKeyframes = [
+      { t: 4.5,  x: 540, y: 1200, op: 0 },
+      { t: 5.2,  x: 360, y: 310,  op: 1 }, // City selector
+      { t: 6.5,  x: 360, y: 310,  op: 1 },
+      { t: 7.4,  x: 840, y: 310,  op: 1 }, // Refresh button
+      { t: 8.6,  x: 540, y: 780,  op: 0.8 },
+      { t: 13.5, x: 340, y: 245,  op: 1 }, // Planner tab
+      { t: 15.2, x: 520, y: 540,  op: 1 }, // Family button
+      { t: 17.0, x: 480, y: 245,  op: 1 }, // Indoor tab
+      { t: 18.8, x: 320, y: 780,  op: 1 }, // Slider start
+      { t: 21.0, x: 740, y: 780,  op: 1 }, // Slider drag end
+      { t: 22.8, x: 640, y: 245,  op: 1 }, // AI Copilot tab
+      { t: 24.4, x: 480, y: 720,  op: 1 }, // Prompt pill
+      { t: 27.8, x: 790, y: 245,  op: 1 }, // Community tab
+      { t: 30.2, x: 540, y: 900,  op: 0 }
+    ];
+
+    const clickMoments = [5.4, 7.6, 13.7, 15.4, 17.2, 23.0, 24.6, 28.0];
+
+    const badges = [
+      { start: 4.5,  end: 13.3, text: "REAL-TIME AQI & POLLUTANTS" },
+      { start: 13.5, end: 22.3, text: "SMART ROUTINE & IAQ SIMULATOR" },
+      { start: 22.5, end: 30.4, text: "GEMINI AI COPILOT & COMMUNITY" }
+    ];
+
+    window.renderAtTime = function(t) {
+      // 1. Background particles
+      ctx.clearRect(0, 0, 1080, 1920);
+      for (const p of particles) {
+        const y = ((p.y0 - t * p.speedY) % 1920 + 1920) % 1920;
+        const x = p.x0 + Math.sin(t * 1.1 + p.phase) * p.drift;
+        ctx.beginPath();
+        ctx.arc(x, y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${p.color}, ${p.alpha})`;
+        ctx.fill();
+      }
+
+      // 2. Intro overlay (0s -> 4.6s)
+      const intro = document.getElementById('intro-overlay');
+      const introContent = document.getElementById('intro-content');
+      if (t <= 4.7) {
+        const enter = easeOutCubic(t / 0.8);
+        const exit = t > 3.6 ? easeInOutCubic((t - 3.6) / 1.0) : 0;
+        intro.style.opacity = String(1 - exit);
+        introContent.style.transform = `scale(${lerp(0.82, 1.0, enter) + exit * 0.25})`;
+        introContent.style.opacity = String(enter * (1 - exit));
+
+        const r1 = document.getElementById('ring-1');
+        const r2 = document.getElementById('ring-2');
+        const r3 = document.getElementById('ring-3');
+        r1.style.transform = `scale(${1 + Math.sin(t * 2.5) * 0.08})`;
+        r2.style.transform = `scale(${1 + Math.sin(t * 2.0 + 1) * 0.08})`;
+        r3.style.transform = `scale(${1 + Math.sin(t * 1.5 + 2) * 0.08})`;
+      } else {
+        intro.style.opacity = '0';
+      }
+
+      // 3. Device 3D Camera
+      const frame = document.getElementById('device-frame');
+      const scale = interpKeyframes(t, camKeyframes, 'scale');
+      const rotX = interpKeyframes(t, camKeyframes, 'rotX');
+      const rotY = interpKeyframes(t, camKeyframes, 'rotY');
+      const transY = interpKeyframes(t, camKeyframes, 'transY');
+      const op = interpKeyframes(t, camKeyframes, 'opacity');
+      frame.style.opacity = String(op);
+      frame.style.transform = `translate3d(0, ${transY}px, 0) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(${scale})`;
+
+      // 4. Scene Badge
+      const badgeEl = document.getElementById('scene-badge');
+      const badgeText = document.getElementById('badge-text');
+      const activeBadge = badges.find(b => t >= b.start && t <= b.end);
+      if (activeBadge) {
+        badgeText.textContent = activeBadge.text;
+        const enterB = easeOutCubic((t - activeBadge.start) / 0.45);
+        const exitB = t > activeBadge.end - 0.35 ? easeOutCubic((t - (activeBadge.end - 0.35)) / 0.35) : 0;
+        const bOp = enterB * (1 - exitB);
+        badgeEl.style.opacity = String(bOp);
+        badgeEl.style.transform = `translate(-50%, ${lerp(-28, 0, enterB) - exitB * 20}px)`;
+      } else {
+        badgeEl.style.opacity = '0';
+      }
+
+      // 5. Virtual Cursor & Ripple
+      const curEl = document.getElementById('virtual-cursor');
+      const ripEl = document.getElementById('cursor-ripple');
+      const cx = interpKeyframes(t, cursorKeyframes, 'x');
+      const cy = interpKeyframes(t, cursorKeyframes, 'y');
+      const cop = interpKeyframes(t, cursorKeyframes, 'op');
+      curEl.style.opacity = String(cop);
+      curEl.style.transform = `translate(${cx}px, ${cy}px)`;
+
+      const recentClick = clickMoments.find(ct => t >= ct && t <= ct + 0.45);
+      if (recentClick !== undefined) {
+        const u = (t - recentClick) / 0.45;
+        ripEl.style.left = `${cx}px`;
+        ripEl.style.top = `${cy}px`;
+        ripEl.style.opacity = String(1 - easeOutCubic(u));
+        ripEl.style.transform = `scale(${lerp(0.2, 1.35, easeOutCubic(u))})`;
+      } else {
+        ripEl.style.opacity = '0';
+      }
+
+      // 6. Outro overlay (31.0s -> 36.0s)
+      const outro = document.getElementById('outro-overlay');
+      const outroCard = document.getElementById('outro-card');
+      if (t >= 31.0) {
+        const u = easeOutCubic((t - 31.0) / 0.8);
+        outro.style.opacity = String(u);
+        outroCard.style.transform = `scale(${lerp(0.88, 1.0, u)}) translateY(${lerp(40, 0, u)}px)`;
+      } else {
+        outro.style.opacity = '0';
+      }
+
+      // 7. Bottom Progress Bar
+      document.getElementById('progress-fill').style.width = `${clamp((t / 36.0) * 100, 0, 100)}%`;
+    };
+  </script>
+</body>
+</html>
