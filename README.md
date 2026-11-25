@@ -9,7 +9,7 @@ A production-quality environmental intelligence and smog navigation platform tha
 [![BreatheSmart CI](https://github.com/innocentgaming/virtual6/actions/workflows/ci.yml/badge.svg)](https://github.com/innocentgaming/virtual6/actions)
 [![Live Demo](https://img.shields.io/badge/demo-online-emerald.svg)](https://breathesmart-ai.onrender.com/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](package.json)
-[![Tests Passing](https://img.shields.io/badge/tests-60%20passed%20%7C%2011%20suites-10b981.svg)](tests/)
+[![Tests Passing](https://img.shields.io/badge/tests-81%20passed%20%7C%2013%20suites-10b981.svg)](tests/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178c6.svg)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18.3-61dafb.svg)](https://react.dev/)
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18.0.0-339933.svg)](https://nodejs.org/)
@@ -20,6 +20,8 @@ A production-quality environmental intelligence and smog navigation platform tha
 
 <p align="center">
   <a href="https://breathesmart-ai.onrender.com/"><strong>🌐 Launch Live Application</strong></a> •
+  <a href="./BreatheSmart_AI_Animated_Reel.mp4"><strong>🎬 3D Animated Reel</strong></a> •
+  <a href="./BreatheSmart_AI_Instagram_Reel.mp4"><strong>📱 Clean 60s Reel</strong></a> •
   <a href="https://github.com/innocentgaming/virtual6"><strong>💻 GitHub Repository</strong></a> •
   <a href="#-table-of-contents"><strong>📖 Documentation Guide</strong></a>
 </p>
@@ -124,14 +126,16 @@ The platform implements 12 distinct, verified core functional modules across its
 
 ### Dedicated Demonstration Media
 
-The repository includes both official video demonstration assets recorded from the live production application:
+The repository includes official video demonstration and promotional assets recorded directly from the live production application using our automated Puppeteer + FFmpeg + Edge-TTS studio pipeline:
 
-- **🎥 3-Minute Product Demonstration Walkthrough (16:9 Landscape Full HD):**  
-  [`breathesmart_demo.mp4`](./breathesmart_demo.mp4) — *1920×1080 @ 30 FPS, exactly 03:00 / 180 seconds, H.264 / AAC, neural voiceover, and burned-in subtitles.*
-- **📱 60-Second Vertical Product Showcase Reel (9:16 Mobile HD):**  
-  [`breathesmart_reel.mp4`](./breathesmart_reel.mp4) — *1080×1920 @ 30 FPS, exactly 60.00 seconds, high-energy startup aesthetic, fast cuts, and burned-in subtitles.*
-- **🌐 Live Production Deployment:**  
-  [https://breathesmart-ai.onrender.com/](https://breathesmart-ai.onrender.com/)
+| Asset | Format & Specs | Highlights |
+| :--- | :--- | :--- |
+| **[`BreatheSmart_AI_Animated_Reel.mp4`](./BreatheSmart_AI_Animated_Reel.mp4)** | **1080×1920 (9:16) • 30 FPS • 36s** | **3D Animated Website Showcase** — True 30 FPS deterministic 3D perspective camera motion, glowing cursor & click ripples, kinetic feature badges, live CADR slider & AI Copilot interactions, plus neural voiceover and rhythmic synth. |
+| **[`BreatheSmart_AI_Instagram_Reel.mp4`](./BreatheSmart_AI_Instagram_Reel.mp4)** | **1080×1920 (9:16) • 30 FPS • 60s** | **Clean Instagram Reel (Zero Overlays)** — Pure visual storytelling with zero added captions or text overlays, pairing smooth UI interactions with studio male voiceover and ambient music. |
+| **[`breathesmart_reel.mp4`](./breathesmart_reel.mp4)** | **1080×1920 (9:16) • 30 FPS • 60s** | **Subtitled Vertical Showcase** — Fast-paced vertical feature walkthrough with burned-in animated subtitles. |
+| **[`breathesmart_demo.mp4`](./breathesmart_demo.mp4)** | **1920×1080 (16:9) • 30 FPS • 180s** | **Full 3-Minute Product Walkthrough** — Complete end-to-end Full HD demonstration with neural narration and time-synced subtitles. |
+
+- **🌐 Live Production Deployment:** [https://breathesmart-ai.onrender.com/](https://breathesmart-ai.onrender.com/)
 
 ---
 
@@ -306,14 +310,21 @@ virtual6/
 │   └── screenshots/
 │       └── README.md              # Screenshot placeholder catalog and capture guide
 ├── scripts/                       # Audio synthesis and video recording automation
+│   ├── reel_stage.html            # Deterministic 3D perspective studio stage for animated reel
+│   ├── record_animated_reel.js    # Puppeteer 30 FPS renderer for 3D animated website reel
+│   ├── generate_animated_reel_audio.py # Edge-TTS voiceover generator (36s animated reel)
+│   ├── build_animated_reel_audio.py    # Voiceover + pulsing synth mixer (36s animated reel)
+│   ├── record_clean_reel.js       # Puppeteer recording script for zero-overlay 60s Reel
+│   ├── generate_clean_reel_audio.py    # Edge-TTS voiceover generator (60s clean Reel)
+│   ├── build_clean_reel_audio.py       # Audio mixing script for 60s clean Reel
 │   ├── generate_audio.py          # Edge-TTS neural voiceover generator (3-minute demo)
 │   ├── build_audio.py             # Audio mixing and mastering script for 3-minute video
 │   ├── record_3min_demo.js        # Puppeteer recording script for 1080p demo walkthrough
 │   ├── subtitles.srt              # Time-synchronized SRT subtitles for 3-minute video
-│   ├── generate_reel_audio.py     # Edge-TTS voiceover generator for 60-second Reel
-│   ├── build_reel_audio.py        # Audio mixing script for 60-second vertical Reel
-│   ├── record_60s_reel.js         # Puppeteer recording script for 9:16 vertical Reel
-│   └── reel_subtitles.srt         # Time-synchronized SRT subtitles for 60-second Reel
+│   ├── generate_reel_audio.py     # Edge-TTS voiceover generator for subtitled 60s Reel
+│   ├── build_reel_audio.py        # Audio mixing script for subtitled 60s vertical Reel
+│   ├── record_60s_reel.js         # Puppeteer recording script for subtitled 9:16 Reel
+│   └── reel_subtitles.srt         # Time-synchronized SRT subtitles for subtitled 60s Reel
 ├── server/                        # Express.js backend application
 │   ├── tsconfig.json              # Server TypeScript compiler configuration
 │   ├── public/                    # Built production client assets (HTML, CSS, JS)
@@ -342,7 +353,7 @@ virtual6/
 │       │   └── index.ts           # Shared TypeScript interfaces and schemas
 │       └── utils/
 │           └── sanitizer.ts       # XSS HTML sanitization and string boundary helpers
-├── tests/                         # Vitest automated test suites (60 tests)
+├── tests/                         # Vitest automated test suites (81 tests across 13 suites)
 │   ├── aqi.test.ts                # EPA AQI conversion & inversion detection tests
 │   ├── routine.test.ts            # Routine optimization & inhaled dose reduction tests
 │   ├── iaq.test.ts                # Differential IAQ decay calculation tests
@@ -353,7 +364,9 @@ virtual6/
 │   ├── accessibility.test.ts      # WCAG 2.2 AA markup & contrast checks
 │   ├── sanitizer.test.ts          # XSS sanitization & input boundary tests
 │   ├── edge_cases.test.ts         # Extreme atmospheric readings & network failure tests
-│   └── advanced_systems.test.ts   # Route optimization & multi-zone IAQ tests
+│   ├── advanced_systems.test.ts   # Route optimization & multi-zone IAQ tests
+│   ├── dashboard_flow.test.ts     # AQI dashboard core logic & city selection tests
+│   └── api_http_integration.test.ts # Express HTTP endpoint & security integration tests
 ├── .env.example                   # Template environment variable configuration
 ├── .gitignore                     # Git tracking exclusions
 ├── package.json                   # Project metadata, scripts, and dependency definitions
@@ -363,8 +376,10 @@ virtual6/
 ├── tsconfig.json                  # Root TypeScript configuration
 ├── vitest.config.ts               # Vitest test runner configuration
 ├── render.yaml                    # Render cloud infrastructure-as-code deployment blueprint
+├── BreatheSmart_AI_Animated_Reel.mp4  # 36s 3D animated 30 FPS website showcase reel
+├── BreatheSmart_AI_Instagram_Reel.mp4 # 60s clean 9:16 Instagram Reel (zero overlays)
 ├── breathesmart_demo.mp4          # Official 3-minute 1080p product demo video
-├── breathesmart_reel.mp4          # Official 60-second 9:16 vertical Instagram Reel
+├── breathesmart_reel.mp4          # Official 60-second 9:16 subtitled vertical Reel
 └── README.md                      # Comprehensive project documentation
 ```
 
@@ -908,7 +923,7 @@ We welcome community contributions to BreatheSmart AI! Follow these steps to con
    ```
 4. **Make Changes & Test:**
    ```bash
-   # Run the test suite to ensure all 60 tests pass
+   # Run the test suite to ensure all 81 tests pass
    npm test
    ```
 5. **Commit Your Changes:**
