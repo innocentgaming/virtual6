@@ -83,8 +83,8 @@ out/
 build/
 *.local
 
-# Editor directories and files
-.idea
+# Temporary public video artifacts
+server/public/*.mp4
 .vscode/*
 !.vscode/extensions.json
 *.suo
